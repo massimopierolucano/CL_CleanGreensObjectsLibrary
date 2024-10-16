@@ -14,7 +14,8 @@ TYPE E_StateMachine :
   cAborted,
   cClearing,
   cResetting,
-  cInitialization := 255        
+  cStateNotAvailable,
+  cInitialization        
 );
 END_TYPE
 ]]></Declaration>

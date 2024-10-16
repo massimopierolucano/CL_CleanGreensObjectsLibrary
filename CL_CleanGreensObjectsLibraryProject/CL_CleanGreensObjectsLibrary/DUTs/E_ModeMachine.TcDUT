@@ -10,7 +10,8 @@ TYPE E_ModeMachine :
   Startup,
   Setup,
   Maintenance,
-  Disabled
+  Disabled,
+  ModeNotAvailable
 );
 END_TYPE
 ]]></Declaration>
