@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_WorkbenchSensor" Id="{7186c0f7-0441-4f85-ac29-deaaa6783b1d}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_WorkbenchSensor
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+  bInit : BOOL := FALSE;
+  _bSensorRaw_P:  POINTER TO BOOL;
+  timeFilter: TON;
+  risEdgeDetector:  R_TRIG;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[]]></ST>
+    </Implementation>
+    <Method Name="Init" Id="{27f678ec-63b0-4f0e-9c9d-eb8fb196e2f3}">
+      <Declaration><![CDATA[METHOD Init : BOOL
+VAR_INPUT
+  bSensor_P:  POINTER TO BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF (bInit = FALSE) AND (bSensor_P <> 0) THEN
+  timeFilter.PT := T#100MS;
+  _bSensorRaw_P := bSensor_P;
+  bInit := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="isModule" Id="{7e31d7fd-ccaf-496b-ac31-2c1f82e8cf37}">
+      <Declaration><![CDATA[METHOD PUBLIC isModule : BOOL
+VAR_INPUT
+END_VAR
+
+VAR
+  filteredSensor: BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[timeFilter(IN:=_bSensorRaw_P^,PT:=T#100MS,Q=>filteredSensor); // True if signal maintained to 1 long enough
+risEdgeDetector(CLK:=filteredSensor,Q=>isModule); // True at the exact rise detection]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

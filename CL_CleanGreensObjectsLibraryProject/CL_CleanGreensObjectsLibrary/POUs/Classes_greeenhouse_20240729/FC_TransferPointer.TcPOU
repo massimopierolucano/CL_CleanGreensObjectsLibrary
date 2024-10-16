@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="FC_TransferPointer" Id="{92c5aa40-a2dd-4d68-bedd-6c89592ea73d}" SpecialFunc="None">
+    <Declaration><![CDATA[//------------------- Custom Automation ----------------------------------------
+//******* Nom du programme: FC_PointeurTransfert
+//******************************************************************************
+//******* Date de création : 23.02.2023           Créateur: Tristan Droz
+//*******
+//******* Description: Transfert de l'adresse d'un pointeur sur au autre variable tout en la supprimant de la variable précédente
+//******************************************************************************
+
+FUNCTION FC_TransferPointer : POINTER TO ST_ModuleData 
+VAR_IN_OUT
+  stByLocalisation_P : POINTER TO ST_ModuleData;
+END_VAR
+VAR
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[FC_TransferPointer := stByLocalisation_P;
+stByLocalisation_P := 0;
+
+]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

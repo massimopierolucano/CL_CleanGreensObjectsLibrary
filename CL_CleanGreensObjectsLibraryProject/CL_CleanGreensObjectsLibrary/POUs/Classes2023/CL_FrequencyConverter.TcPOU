@@ -1,0 +1,263 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_FrequencyConverter" Id="{a008f149-09f6-43ae-87e7-a4637f1f158e}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_FrequencyConverter EXTENDS CL_Ancestor
+VAR
+  //Actual OP
+  bIsBusyMoveBW                   : BOOL;
+  bIsBusyMoveFW                   : BOOL;
+                                  
+  //Request                       
+  bRequestMoveBW                  : BOOL;
+  bRequestMoveFW                  : BOOL;
+  bRequestStop                    : BOOL;
+  bRequestHightSpeed              : BOOL;
+  bRequestReset                   : BOOL;
+ 
+  //Step state machine                                                                  
+  nStep                          : INT := 0;
+  
+  //Oter var
+  i                               : UINT;
+  bInit                           : BOOL;
+  
+  //FB
+  fbClearRetry                    : TON:=(pt:=T#5S); 
+  fbAccTime                       : TON;
+  fbTimeClearing                  : Ton:= (PT:=T#1S);     
+  
+// INTERNAL VAR
+  _bFrqConvReady_P     : POINTER TO BOOL;
+  _bFrqConvRunning_P   : POINTER TO BOOL;
+  _stFrqConvOutput_P   : POINTER TO ST_FrqCnvrCtrl_HWQ;
+  _bSpeedReached                  : BOOL;
+
+  
+END_VAR
+VAR CONSTANT
+  nIdle_C             :INT := 0;
+  nMoveToSetPointFW_C :INT := 1;
+  nMoveToSetPointBW_C :INT := 2;
+  nStopping_C         :INT := 3;
+  nClearing_C         :INT := 4;
+  nCleared_C          :INT := 5;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//Check pointer
+IF not bInit THEN
+  RETURN;
+END_IF
+
+//Call FB
+fbAccTime(in := nStep=nMoveToSetPointFW_C OR nStep=nMoveToSetPointBW_C);
+fbTimeClearing(IN := nStep = nCleared_C );
+
+IF NOT _bFrqConvReady_P^  THEN
+  _bSpeedReached := FALSE;
+END_IF
+
+CASE nStep OF
+  // -------------------------------------------------
+  nIdle_C:
+    IF bRequestReset THEN
+      bRequestReset := FALSE;
+      nStep := nClearing_C;
+    ELSIF bRequestStop THEN
+      bRequestStop := FALSE;
+      _bSpeedReached := FALSE;
+      nStep := nStopping_C;
+    ELSIF bRequestMoveFW THEN
+      bRequestMoveFW := FALSE;
+      nStep := nMoveToSetPointFW_C;
+    ELSIF bRequestMoveBW THEN
+      bRequestMoveBW := FALSE;
+      nStep := nMoveToSetPointBW_C;
+		END_IF
+    
+  // -------------------------------------------------
+  nMoveToSetPointFW_C:   
+    _stFrqConvOutput_P^.bMoveFW_gq := TRUE;
+    _stFrqConvOutput_P^.bHighSpeed_gq := bRequestHightSpeed;
+    IF bRequestStop OR NOT _bFrqConvReady_P^ THEN
+      bRequestStop:= FALSE;
+      nStep := nStopping_C;
+    ELSIF fbAccTime.Q THEN
+      _bSpeedReached := TRUE;
+      nStep := nIdle_C;
+		END_IF  
+
+  // -------------------------------------------------
+  nMoveToSetPointBW_C:   
+    _stFrqConvOutput_P^.bMoveBW_gq := TRUE;
+    _stFrqConvOutput_P^.bHighSpeed_gq := bRequestHightSpeed ;
+    IF bRequestStop OR NOT _bFrqConvReady_P^ THEN
+      bRequestStop:= FALSE;
+      nStep := nStopping_C;
+    ELSIF fbAccTime.Q THEN
+      _bSpeedReached := TRUE;
+      nStep := nIdle_C;
+		END_IF 
+    
+  // -------------------------------------------------
+  nStopping_C:
+    _stFrqConvOutput_P^.bMoveBW_gq := FALSE;
+    _stFrqConvOutput_P^.bMoveFW_gq := FALSE;
+    _stFrqConvOutput_P^.bHighSpeed_gq := FALSE;
+    IF NOT _bFrqConvRunning_P^ THEN
+      nStep := nIdle_C;
+      bisBusyMoveBW  := FALSE;
+      bIsBusyMoveFW  := FALSE;
+    END_IF   
+    
+  // -------------------------------------------------
+  nClearing_C:
+    _stFrqConvOutput_P^.bReset_gq := TRUE;
+    IF _bFrqConvReady_P^ THEN
+      nStep := nCleared_C;
+		END_IF  
+    
+  // -------------------------------------------------
+  nCleared_C:
+    _stFrqConvOutput_P^.bReset_gq := FALSE;
+    IF fbTimeClearing.Q THEN
+      nStep := nIdle_C;
+    END_IF
+
+END_CASE
+
+Case01Hysto(nStep);]]></ST>
+    </Implementation>
+    <Property Name="bIsReady" Id="{a6551139-eb1e-435b-be02-cc60a51dc4b6}">
+      <Declaration><![CDATA[PROPERTY bIsReady : bool]]></Declaration>
+      <Get Name="Get" Id="{2fa8a5f1-08fb-4b51-8a6f-8a504b2c82b0}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsReady := _bFrqConvReady_P^;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsStopped" Id="{facf7305-03fe-441d-b4fe-f242ff894116}">
+      <Declaration><![CDATA[PROPERTY bIsStopped : bool]]></Declaration>
+      <Get Name="Get" Id="{8a0591c8-377d-49d7-b252-99b742e5d099}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsStopped := not _bFrqConvRunning_P^;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bSpeedReached" Id="{6c3ab321-3a88-4857-930b-4c0144e37752}">
+      <Declaration><![CDATA[PROPERTY bSpeedReached : bool]]></Declaration>
+      <Get Name="Get" Id="{eec5f6b8-089d-45e9-8c06-a2be8cfd1e01}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bSpeedReached := _bSpeedReached;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="FB_init" Id="{fa628faf-90fb-4350-9517-8eba64d52a4f}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains  : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode   : BOOL; // if TRUE, the instance afterwards gets moved into the copy code (online change)
+  tAccTime      : TIME; // value set inside the frenquency controler
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbAccTime.PT := tAccTime;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Init" Id="{f3ec1a8f-399e-49d1-97de-319dfdd30eb2}">
+      <Declaration><![CDATA[METHOD Init : BOOL
+VAR_INPUT
+  //IO
+  bFrqConvReady_P		: POINTER TO BOOL;
+  bFrqConvRunning_P	: POINTER TO BOOL;
+  stFrqConv_P				: POINTER TO ST_FrqCnvrCtrl_HWQ;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Init IO
+_bFrqConvReady_P := bFrqConvReady_P;
+_bFrqConvRunning_P := bFrqConvRunning_P;
+_stFrqConvOutput_P:= stFrqConv_P;
+
+//Check Init
+IF _bFrqConvReady_P <> 0 AND _bFrqConvRunning_P <> 0 AND _stFrqConvOutput_P <> 0 THEN
+  bInit := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ReqMoveBW" Id="{ea8fe915-182d-462d-98db-f45f2f70469d}">
+      <Declaration><![CDATA[METHOD ReqMoveBW : BOOL
+VAR_INPUT
+  bHighSpeed : BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ReqMoveBW := FALSE;
+IF NOT bIsBusyMoveFW AND _bFrqConvReady_P^ AND (bHighSpeed <> bRequestHightSpeed OR NOT bisBusyMoveBW) THEN
+  bisBusyMoveBW        := TRUE;
+  ReqMoveBW           := TRUE;
+  bRequestMoveBW      := TRUE;
+  bRequestHightSpeed  := bHighSpeed;
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ReqMoveFW" Id="{39d89cee-72b4-445b-accf-5ee8826ca6c8}">
+      <Declaration><![CDATA[METHOD ReqMoveFW : BOOL
+VAR_INPUT
+  bHighSpeed : BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ReqMoveFW := FALSE;
+IF NOT bisBusyMoveBW AND _bFrqConvReady_P^ AND (bHighSpeed <> bRequestHightSpeed OR NOT bisBusyMoveFW) THEN
+  ReqMoveFW            := TRUE;
+  bRequestMoveFW       := TRUE;
+  bisBusyMoveFW        := TRUE;
+  bRequestHightSpeed   := bHighSpeed;
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ReqReset" Id="{fa112ee7-f3ba-4fe0-8cd3-212ebfe65625}">
+      <Declaration><![CDATA[METHOD ReqReset : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ReqReset := FALSE;
+
+IF NOT _bFrqConvReady_P^ AND nStep = nIdle_C THEN
+  ReqReset := TRUE;
+  bRequestReset := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ReqStop" Id="{515e1c34-33bf-4964-9928-e602a9dfe1a9}">
+      <Declaration><![CDATA[METHOD ReqStop : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ReqStop := FALSE;
+IF nStep <> nStopping_C THEN
+  ReqStop := TRUE;
+  bRequestStop := TRUE;
+END_IF
+
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

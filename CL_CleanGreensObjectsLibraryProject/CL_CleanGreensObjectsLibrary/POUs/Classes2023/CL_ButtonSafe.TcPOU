@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_ButtonSafe" Id="{69a0de34-5f25-4b14-b757-6e63c05474ef}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC CL_ButtonSafe
+VAR
+	bBtnSens_P  : POINTER TO BOOL;
+	bBtnLight_P : POINTER TO BOOL;
+	bInit       : BOOL := FALSE;
+  bBtnLight   : BOOL;
+  
+  bBtnRise    : R_trig;
+  bBtnFall    : F_trig;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bInit THEN 
+	bBtnRise(CLK := bBtnSens_P^);
+  bBtnFall(CLK := bBtnSens_P^);
+  
+	bBtnLight_P^:= bBtnLight;
+END_IF
+]]></ST>
+    </Implementation>
+    <Property Name="BtnPressed" Id="{7d1d7071-7e58-4495-b119-93554829800a}">
+      <Declaration><![CDATA[PROPERTY PUBLIC BtnPressed : BOOL]]></Declaration>
+      <Get Name="Get" Id="{7be85160-3881-4124-99da-227cc9bc67ee}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF bInit THEN
+	//BtnPressed := bBtnFall.Q;
+  BtnPressed := bBtnRise.Q;
+	{IF defined (simulation)}
+	BtnPressed := bBtnSens_P^;
+	{END_IF}
+ELSE
+	BtnPressed := false;
+END_IF]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="BtnReleased" Id="{076d4617-3c60-4839-b547-097c6acb45f6}">
+      <Declaration><![CDATA[PROPERTY PUBLIC BtnReleased : BOOL]]></Declaration>
+      <Get Name="Get" Id="{c42d9360-0758-415a-bbc7-d6a6f71a1ab8}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF bInit THEN
+	//BtnReleased := bBtnRise.Q;
+  BtnReleased := bBtnFall.Q;
+	{IF defined (simulation)}
+	BtnReleased := bBtnSens_P^;
+	{END_IF}
+ELSE
+	BtnReleased := false;
+END_IF]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Init" Id="{e37b3173-da9d-4689-9ad0-1f7f7cfa3475}">
+      <Declaration><![CDATA[METHOD PUBLIC Init : BOOL
+VAR_INPUT
+	bBtnSensPtrIn_P   : POINTER TO BOOL;
+	bBtnLightPtrIn_P  : POINTER TO BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Init := FALSE;
+IF NOT bInit THEN
+	Init := bInit := bBtnSensPtrIn_P <> 0 AND bBtnLightPtrIn_P <> 0;
+	bBtnSens_P := bBtnSensPtrIn_P;
+	bBtnLight_P := bBtnLightPtrIn_P;
+	bBtnLight := FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="LightOff" Id="{c5e13c97-b8a2-41be-a181-3c07f2c561a4}">
+      <Declaration><![CDATA[METHOD PUBLIC LightOff
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit THEN 
+	bBtnLight := FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="LightOn" Id="{079ed531-72db-469c-b95b-adff25e89b1d}">
+      <Declaration><![CDATA[METHOD PUBLIC LightOn
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit THEN 
+	bBtnLight := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

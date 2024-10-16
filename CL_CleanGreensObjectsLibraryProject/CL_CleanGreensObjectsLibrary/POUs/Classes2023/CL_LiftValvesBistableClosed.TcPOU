@@ -1,0 +1,237 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_LiftValvesBistableClosed" Id="{1c8a40df-22e5-420a-8a38-b2a3483030f7}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_LiftValvesBistableClosed  //ValveBistableClosed
+VAR
+	//Methods Request
+	bRequUp        : BOOL;
+	bRequDown      : BOOL;
+  		
+	//Private INTERNAL VAR not accesible
+  //IO
+  _bValveDown_P : POINTER TO BOOL;
+  _bValveUp_P		: POINTER TO BOOL;
+	
+	_tDown				: TIME;
+	_tUp					: TIME;
+
+	_bIsBusy      : BOOL;
+  _bIsBusyUP    : BOOL;
+  _bIsBusyDown  : BOOL;
+	_bIsDone      : BOOL;
+
+	//FBs
+	fbTimDown 		: TON ;
+	fbTimUp 			: TON ;
+
+	bInit					: BOOL := FALSE;
+	nstpMain      : INT := Idle_C;
+	tDown: TIME;
+	tUp: TIME;
+END_VAR
+
+VAR CONSTANT
+	Idle_C        : INT := 0;
+	WaitUP_C      : INT := 1;
+	WaitDown_C    : INT := 2;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//N.B. no sensor available to check that the valve thus the lift is moving -> not possible to implement any kind of errors handling
+IF NOT bInit THEN
+  RETURN;
+END_IF
+
+fbTimUp(IN:= _bValveUp_P^);//sensor is false and valve is power on -> trigger timer IN from false to true rising edge
+fbTimDown(IN:= _bValveDown_P^);//sensor is false and valve is power on -> trigger timer IN from false to true rising edge
+
+CASE nstpMain OF
+  // -------------------------------------------------
+  Idle_C:
+    IF bRequUp THEN
+      bRequUP := FALSE;
+      fbTimUp.PT := _tUp;
+      nstpMain := WaitUP_C;
+    ELSIF bRequDown THEN
+      bRequDown := FALSE;
+      fbTimDown.PT := _tDown;
+      nstpMain := WaitDown_C;
+    END_IF
+  
+  // -------------------------------------------------
+  WaitUP_C:
+    //lift is going up; no sensor available -> return true when calibration time elapsed
+    _bValveUp_P^ := TRUE; //can power on electro-valve
+		_bValveDown_P^ := FALSE;
+    IF fbTimUp.Q  THEN
+      //after fbTimUp the lift will be up 
+      nstpMain := Idle_C;
+      _bIsDone := TRUE;
+      _bIsBusy := FALSE;
+      _bIsBusyUp := FALSE;
+    END_IF
+  
+	// -------------------------------------------------
+  WaitDown_C:
+    //lift is going down; no sensor available -> return true when calibration time elapsed
+    _bValveUp_P^ := FALSE; //can power on electro-valve
+		_bValveDown_P^ := TRUE;
+    IF fbTimDown.Q  THEN
+      //after fbTimDown the lift will be down 
+      nstpMain := Idle_C;
+      _bIsDone := TRUE;
+      _bIsBusy := FALSE;
+      _bIsBusyDown := FALSE;
+    END_IF
+
+END_CASE]]></ST>
+    </Implementation>
+    <Property Name="bIsBusyDown" Id="{5f86c4dc-fd8a-44d3-b306-43f6a9b0f414}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsBusyDown : bool]]></Declaration>
+      <Get Name="Get" Id="{75eb1825-f420-458c-b2a8-69395716a5e9}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsBusyDown := _bIsBusyDown;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsBusyUp" Id="{ddf2e43c-143e-4540-8431-7c96569f0082}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsBusyUp : bool]]></Declaration>
+      <Get Name="Get" Id="{f93cd7dd-f55d-4f91-b752-7403114ac728}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsBusyUp := _bIsBusyUp;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsDone" Id="{d61eab9c-7a43-4abc-8c6f-2410ce1bf912}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsDone : bool]]></Declaration>
+      <Get Name="Get" Id="{55f0e4c0-deaa-4f7b-b0a7-d8154f6eb028}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsDone := _bIsDone;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsDown" Id="{754b3b23-e9b5-445c-922b-6b8eb30ecb89}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsDown : BOOL]]></Declaration>
+      <Get Name="Get" Id="{f060297d-af59-46c9-a8a3-54c33870b381}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsDown := fbTimDown.Q ;//elapsed time to assert that the lift is in up position]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsUp" Id="{a7124f9e-b283-4b0f-af2f-f973d5377bab}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsUp : bool]]></Declaration>
+      <Get Name="Get" Id="{1519fd3c-e1db-491b-b858-f073075b6fc7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsUp := fbTimUp.Q ;//elapsed time to assert that the lift is in up position]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Init" Id="{737a25d7-38f6-427e-9cc9-93a567989db0}">
+      <Declaration><![CDATA[METHOD Init : BOOL
+VAR_INPUT
+	bValveDown_P			: POINTER TO BOOL;
+  bValveUp_P				: POINTER TO BOOL;
+	
+	tDown							: TIME;
+	tUp							  : TIME;
+END_VAR
+
+(*  CONTRACT  
+    
+    If:
+       - the pointers given as inputs are valid (non-null)
+       - the times given as inputs are strictly greater than 0.5s
+   Then:
+      The init method will copy the inputs to the properties of the object,
+      set the times for TON Timers, set bInit to 1 and returns true.
+      It ensures that!
+
+*)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[// Preconditions check
+IF bValveDown_P <> 0 AND bValveUp_P <> 0 AND tDown > T#0.5S AND tUp > T#0.5S THEN
+  
+  //Init IO
+  _bValveDown_P  := bValveDown_P;
+  _bValveUp_P := bValveUp_P;
+  
+  _tDown := tDown;  // For future features.
+  _tUp := tUp;
+  
+  fbTimDown.PT := tDown;
+	fbTimUp.PT := tUp;
+  
+  bInit := TRUE;
+  Init  := TRUE;
+ELSE
+  bInit := FALSE;
+  Init  := FALSE;
+END_IF
+
+
+////Init IO
+//_bValveDown_P  := bValveDown_P;
+//_bValveUp_P := bValveUp_P;
+
+//_tDown := tDown;  // For future features.
+//_tUp := tUp;
+
+//Init := FALSE;
+////Check Init  //MCO to modify, because preconditions to check before doing any modification (risk of null pointer detection or internal state modification)
+//IF _bValveDown_P <> 0 AND _bValveUp_P <> 0 AND _tDown > T#0.5S AND _tUp > T#0.5S THEN
+//  //Defect
+  
+//  Init := bInit := TRUE;
+//	fbTimDown.PT := tDown;
+//	fbTimUp.PT := tUp;
+//END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ReqDown" Id="{7719a4e6-a881-4472-9668-a3ee3d9cab02}">
+      <Declaration><![CDATA[METHOD PUBLIC ReqDown : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ReqDown := TRUE;
+
+bRequDown := TRUE;
+_bIsBusyDown := TRUE;
+
+bRequUp := FALSE;
+_bIsBusyUP := FALSE;
+
+_bIsBusy := TRUE;
+_bIsDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ReqUp" Id="{67f07e54-b16c-44b9-a235-28850ca238bd}">
+      <Declaration><![CDATA[METHOD ReqUp : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ReqUp := TRUE;
+
+bRequDown := FALSE;
+_bIsBusyDown := FALSE;
+
+bRequUp := TRUE;
+_bIsBusyUP := TRUE;
+
+_bIsBusy := TRUE;
+_bIsDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

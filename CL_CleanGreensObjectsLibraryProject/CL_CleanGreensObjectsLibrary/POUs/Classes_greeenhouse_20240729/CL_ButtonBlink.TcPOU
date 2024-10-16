@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_ButtonBlink" Id="{100e69da-f782-4464-9428-377145939690}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC CL_ButtonBlink  EXTENDS R_trig
+VAR
+	bBtnSens_P 		: POINTER TO BOOL;
+	bBtnLight_P 	: POINTER TO BOOL;
+	bInit 				: BOOL := FALSE;
+	bLight			 	: BOOL := FALSE;
+	bBlink				: BOOL := FALSE;
+  fbBlink     	: TON := (PT := T#0.5S);
+	fbBlink2     	: TON := (PT := T#1.0S);
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bInit THEN 
+	SUPER^(CLK := bBtnSens_P^);
+	fbBlink2(in := NOT fbBlink2.Q);
+	fbBlink(in :=  fbBlink2.IN);
+	
+	IF bBlink THEN
+		bBtnLight_P^:= fbBlink.Q;
+	ELSE
+		bBtnLight_P^:= bLight;
+	END_IF
+
+END_IF
+]]></ST>
+    </Implementation>
+    <Method Name="BlinkOff" Id="{c6c908a2-e6c8-4191-b997-cc3f0b80aac2}">
+      <Declaration><![CDATA[METHOD PUBLIC BlinkOff
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit THEN 
+	bBlink := FALSE;
+	bLight := FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="BlinkOn" Id="{a025fe55-2172-4fce-b7c1-46d1054dcbcb}">
+      <Declaration><![CDATA[METHOD PUBLIC BlinkOn
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit THEN 
+	bBlink := TRUE;
+	bLight := FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="bPressed" Id="{f60e7c90-658e-4d8d-bfa2-44a22d3ccaf0}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bPressed : BOOL]]></Declaration>
+      <Get Name="Get" Id="{12033903-34fd-44f6-8c26-0b905e8157cc}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF bInit THEN
+	bPressed := SUPER^.Q;
+	{IF defined (debug)}
+	bPressed := bBtnSens_P^;
+	{END_IF}
+ELSE
+	bPressed := false;
+END_IF]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Init" Id="{0293668a-7e7e-4cec-9e39-9a11b6ee0f4b}">
+      <Declaration><![CDATA[METHOD PUBLIC Init : BOOL
+VAR_INPUT
+	bBtnSensPtrIn_P   : POINTER TO BOOL;
+	bBtnLightPtrIn_P  : POINTER TO BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Init := FALSE;
+IF NOT bInit THEN
+	Init := bInit := bBtnSensPtrIn_P <> 0 AND bBtnLightPtrIn_P <> 0;
+	bBtnSens_P := bBtnSensPtrIn_P;
+	bBtnLight_P := bBtnLightPtrIn_P;
+	bLight := FALSE;
+	bBlink := FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="LightOff" Id="{a8573a02-d2ee-4a51-a77c-7e8814a1dbe2}">
+      <Declaration><![CDATA[METHOD PUBLIC LightOff
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit THEN 
+	bLight := FALSE;
+	bBlink := FALSE; 
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="LightOn" Id="{2dadcf0b-3e2f-4ca5-9998-01da7ab67735}">
+      <Declaration><![CDATA[METHOD PUBLIC LightOn
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit THEN 
+	bLight := TRUE;
+	bBlink := FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

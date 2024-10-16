@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_Button" Id="{0ff5cade-695a-4e8d-8a23-bf516d9bab45}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC CL_Button  EXTENDS R_trig
+VAR
+	bBtnSens_P : POINTER TO BOOL;
+	bBtnLight_P : POINTER TO BOOL;
+	bInit : BOOL := FALSE;
+	bBtnPressed : BOOL := false;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bInit THEN 
+	SUPER^(CLK := bBtnSens_P^);
+	bBtnLight_P^:= bBtnPressed;
+END_IF
+]]></ST>
+    </Implementation>
+    <Property Name="bPressed" Id="{60ce9598-e72c-4827-88ed-8d60b097499f}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bPressed : BOOL]]></Declaration>
+      <Get Name="Get" Id="{29c93380-0f19-4c67-a112-9108cc3693b7}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF bInit THEN
+	bPressed := SUPER^.Q;
+	{IF defined (simulation)}
+	bPressed := bBtnSens_P^;
+	{END_IF}
+ELSE
+	bPressed := false;
+END_IF]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Init" Id="{29b8b4b1-2a72-43e7-aca9-aed10aa91d0a}">
+      <Declaration><![CDATA[METHOD PUBLIC Init : BOOL
+VAR_INPUT
+	bBtnSensPtrIn_P   : POINTER TO BOOL;
+	bBtnLightPtrIn_P  : POINTER TO BOOL;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Init := FALSE;
+IF NOT bInit THEN
+	Init := bInit := bBtnSensPtrIn_P <> 0 AND bBtnLightPtrIn_P <> 0;
+	bBtnSens_P := bBtnSensPtrIn_P;
+	bBtnLight_P := bBtnLightPtrIn_P;
+	bBtnPressed := false;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="LightOff" Id="{ccc0d6e9-ab07-400c-8cad-c5672f1d6c7e}">
+      <Declaration><![CDATA[METHOD PUBLIC LightOff
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit THEN 
+	bBtnPressed := false;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="LightOn" Id="{b3fe9745-053d-475a-8b5b-64fb686fa711}">
+      <Declaration><![CDATA[METHOD PUBLIC LightOn
+
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit THEN 
+	bBtnPressed := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

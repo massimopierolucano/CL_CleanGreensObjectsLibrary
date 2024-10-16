@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="EMPTYSTR2" Id="{5389afbc-b10d-4582-9ce2-03d3110283b8}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION EMPTYSTR2 : BOOL
+VAR_INPUT
+	pSTR : POINTER TO STRING;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[EMPTYSTR2 := DELETE2(pSTR,pSTR,SIZEOF(pSTR^),LEN2(pSTR),1);]]></ST>
+    </Implementation>
+  </POU>
+</TcPlcObject>

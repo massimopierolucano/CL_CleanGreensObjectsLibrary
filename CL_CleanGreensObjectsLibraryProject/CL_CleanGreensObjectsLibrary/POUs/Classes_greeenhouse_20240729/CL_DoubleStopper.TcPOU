@@ -1,0 +1,341 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_DoubleStopper" Id="{ea6176a4-933b-4fd4-8574-47d198414a37}" SpecialFunc="None">
+    <Declaration><![CDATA[(*
+ExtractorStopper normally UP
+PerpendStopper normally DOWN
+controlled together by ExtractorDownPerpendUpStoppersVlv
+ExtractorStopperDown and PerpendStopperDown
+*)
+
+(*
+RFIDStopper normally UP
+HandoverStopper normally DOWN
+controlled together by RFIDDownHandoverUpStoppersVlv
+RFIDStopperDown
+*)
+
+FUNCTION_BLOCK CL_DoubleStopper
+VAR
+//Defect
+  objTimeOutStopperUp  : CL_Defect; (*	Not used, so no way to check if the object is working or not	*)
+  objTimeOutStopperDown: CL_Defect;
+
+//Error Var
+	bErrorUp          : BOOL;
+	bErrorDown        : BOOL;
+  
+//Seq management
+	nstpMain          : INT := 0;
+  nHistoryStm_AR    : ARRAY[0..C.uiHistoryStep_C] OF INT;
+  nLastStm          : INT := -1;
+
+//Index	
+  i                 : INT;
+
+//Other var 
+  bInit             : BOOL;
+  
+//FBs
+	fbTimerStopperUp     : TON ;
+	fbErrorStopperDown   : TON := (PT:= C.tStopperDown_C);
+	fbErrorStopperUp     : TON := (PT:= C.tStopperUp_C);
+	
+//Methods Request
+	bRequUp           : BOOL;
+	bRequDown         : BOOL;
+  
+// INTERNAL VAR 		
+	_bSensorStp1Down					: BOOL;
+  _bSensorStp1Down_P       	: POINTER TO BOOL;
+  _bSensorStp2Down_P       	: POINTER TO BOOL;//the secondary stopper could have a down sensor
+  _bValveUp_P          			: POINTER TO BOOL;
+	
+  _objGHSystem_P  : POINTER TO CL_GreenhouseSystem;
+  _bIsBusy             : BOOL;
+  _bIsBusyUP           : BOOL;
+  _bIsBusyDown         : BOOL;
+	_bIsDone             : BOOL;
+  _bDesactiveError     : BOOL;
+  _nLineNumber_P       : POINTER TO INT;
+END_VAR
+
+VAR CONSTANT
+	nIdle_C             : INT := 0;
+	WaitUP_C            : INT := 1;
+	nWaitDown_C         : INT := 2;
+	nLiftError_C        : INT := 3;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT bInit THEN
+  RETURN;
+END_IF
+
+_bSensorStp1Down := _bSensorStp1Down_P^;
+
+fbTimerStopperUp(IN:= NOT _bSensorStp1Down AND _bValveUp_P^);//sensor is false and valve is power on -> trigger timer IN from false to true rising edge
+
+(*IF NOT _bDesactiveError THEN
+	IF _objGHSystem_P^.nModeMachine <> E_ModeMachine.Manual THEN// desactive Error in manual mode
+		fbErrorStopperUp(IN:= _bSensorStp1Down AND _bValveUp_P^);//stopper should go down -> if after the selected time Q is true --> stopper error remains UP
+		fbErrorStopperDown(IN:= NOT _bSensorStp1Down AND NOT _bValveUp_P^);//stopper should go up -> if after the selected time Q is true --> stopper error remains DOWN
+	END_IF
+	
+//	bErrorUp := fbErrorStopperUp.Q;
+//	bErrorDown := fbErrorStopperDown.Q;
+	objTimeOutStopperUp();
+//	objTimeOutStopperUp.SetState(fbErrorStopperUp.Q);
+	objTimeOutStopperDown();
+//	objTimeOutStopperDown.SetState(fbErrorStopperDown.Q);
+	
+	IF bErrorUp OR bErrorDown THEN 
+		bRequUP := bRequDown := FALSE;//cancel method request
+		_bIsDone := FALSE;
+		_bIsBusy := FALSE;
+		_bIsBusyDown := FALSE;
+		_bIsBusyUP := FALSE;
+		nstpMain := nLiftError_C;
+	END_IF
+END_IF*)
+
+
+CASE nstpMain OF
+  // -------------------------------------------------
+  nIdle_C:
+    IF bRequUp THEN
+      bRequUP := FALSE;
+      nstpMain := WaitUP_C;
+    ELSIF bRequDown THEN
+      bRequDown := FALSE;
+      nstpMain := nWaitDown_C;
+    END_IF
+  
+  // -------------------------------------------------
+  WaitUP_C:
+    //lift is going up; no sensor available -> return true when calibration time elapsed
+    _bValveUp_P^ := TRUE; //can power on electro-valve
+    IF fbTimerStopperUp.Q  THEN
+      //if after the calibrated time the sensor is true -> error lift is still down; error detected with the timer
+      nstpMain := nIdle_C;
+      _bIsDone := TRUE;
+      _bIsBusy := FALSE;
+      _bIsBusyUp := FALSE;
+    END_IF
+  
+  // -------------------------------------------------
+  nWaitDown_C:
+    IF _bSensorStp1Down  THEN //lift is down -> sensor is true
+      nstpMain := nIdle_C;
+      _bIsDone := TRUE;
+      _bIsBusy := FALSE;
+      _bIsBusyDown := FALSE;
+    ELSE
+     _bValveUp_P^ := FALSE; //sensor is false -> can power off electro-valve
+    END_IF
+    
+  // -------------------------------------------------
+  nLiftError_C:
+    //error handling lift error
+    IF NOT bErrorUp AND  NOT bErrorDown THEN
+      nstpMain := nIdle_C;
+    END_IF
+END_CASE
+
+  
+//Historization of STM
+IF nLastStm <> nstpMain THEN
+  nLastStm := nstpMain;
+  FOR i := C.uiHistoryStep_C TO 1 BY -1 DO
+    nHistoryStm_AR[i] := nHistoryStm_AR[i-1];
+  END_FOR
+  nHistoryStm_AR[0] := nstpMain;
+END_IF
+
+
+]]></ST>
+    </Implementation>
+    <Property Name="bDesactiveError" Id="{d62945b6-3bb0-47d4-a220-5cb1b2429b23}">
+      <Declaration><![CDATA[PROPERTY bDesactiveError : bool]]></Declaration>
+      <Get Name="Get" Id="{1ced3220-2e02-4622-8672-b8766d0432dd}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bDesactiveError := _bDesactiveError;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{5cd81a5f-3261-4a34-95ce-375be2bb75f6}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_bDesactiveError := bDesactiveError;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="bInError" Id="{a152c37e-4081-4efc-9b76-d91aea9e93d9}">
+      <Declaration><![CDATA[PROPERTY bInError : bool]]></Declaration>
+      <Get Name="Get" Id="{339e8d95-7835-4906-bf81-f19d9173b4a4}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bInError := fbErrorStopperUp.Q OR fbErrorStopperDown.Q;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsBusyDown" Id="{980fd382-0e93-4862-961c-381cfd44c19b}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsBusyDown : bool]]></Declaration>
+      <Get Name="Get" Id="{b25c0adb-e331-491a-a236-540f537f2b48}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsBusyDown := _bIsBusyDown;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsBusyUp" Id="{277c5bea-deaf-4c2f-91bc-d79d13700614}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsBusyUp : bool]]></Declaration>
+      <Get Name="Get" Id="{c078bfd0-4786-4928-acbd-72392692fd87}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsBusyUp := _bIsBusyUp;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsDone" Id="{d0bbc7e9-98c8-449a-b0ec-fe4014b59f46}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsDone : bool]]></Declaration>
+      <Get Name="Get" Id="{9035f642-26ab-4ee0-ad6b-4e45a813a2d9}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsDone := _bIsDone;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsDown" Id="{676137e4-12e0-4e53-8fe8-32812d5e528b}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsDown : BOOL]]></Declaration>
+      <Get Name="Get" Id="{52d68b3f-407e-4bc2-81c9-123be4a5f9b8}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsDown := _bSensorStp1Down AND NOT _bValveUp_P^;//lift is in down position -> sensor is true and valve is power off  isIN]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsNotDown" Id="{6c022142-9a81-47d1-aa5f-eedcc3a47822}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsNotDown : BOOL]]></Declaration>
+      <Get Name="Get" Id="{f298395b-e03c-482e-a470-0233a3758f21}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsNotDown := NOT bIsDown;//lift is not in down position -> sensor is true and valve is power off]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsUp" Id="{1f912a9c-76a3-45d6-9347-262ce9b40943}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsUp : bool]]></Declaration>
+      <Get Name="Get" Id="{9eba2068-8ec5-4d86-91ad-a3345f46bf1d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsUp := fbTimerStopperUp.Q ;//elapsed time to assert that the stopper is in up position
+{IF defined (debug)}
+bIsUp := TRUE ;
+{END_IF}]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Init" Id="{69bc29a0-d1cf-4111-9043-f0d88b143d09}">
+      <Declaration><![CDATA[METHOD Init : BOOL
+VAR_INPUT
+  //Obj
+  GHSystem_P 	: POINTER TO CL_GreenhouseSystem;
+  
+  //IO
+  bSensorStp1Down_P	: POINTER TO BOOL;
+  bSensorStp2Down_P	: POINTER TO BOOL;
+  bValveStp1Up_P		: POINTER TO BOOL;
+
+  //Var
+	tStp1Up						: TIME;
+	
+	// Location number
+	usiNbLocatStopper			: USINT;
+END_VAR
+
+// Class ID: 020]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Init Obj
+_objGHSystem_P  := GHSystem_P ;
+
+//Init IO
+_bSensorStp1Down_P  := bSensorStp1Down_P;
+_bSensorStp2Down_P  := bSensorStp2Down_P;//if set to NULL then no secondary sensor available
+_bValveUp_P := bValveStp1Up_P;
+
+//Init Var
+Init := FALSE;
+//Check Init
+IF bSensorStp1Down_P <> 0 AND _bValveUp_P <> 0 AND _objGHSystem_P <> 0 THEN
+  //Defect
+//  ObjTimeOutStopperUp.Register(gvl.objDefectManager,CidCL.sClassID_DoubleStopper_C[usiNbLocatStopper],CidErr.sErrorIDs_DoubleStopper_C[1]);
+//  ObjTimeOutStopperDown.Register(gvl.objDefectManager,CidCL.sClassID_DoubleStopper_C[usiNbLocatStopper],CidErr.sErrorIDs_DoubleStopper_C[2]);
+  InitDefect(iNumInst := usiNbLocatStopper); // Conversion from short unsigned to signed integer always possible, so OK.
+	
+  Init := bInit := TRUE;
+	fbTimerStopperUp.PT := tStp1Up;	// Maybe to move inside the InitDefect method
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="InitDefect" Id="{86231370-ff86-44db-ab0e-9b7b97825fda}">
+      <Declaration><![CDATA[METHOD InitDefect : BOOL
+VAR_INPUT
+	iNumInst	:	INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ReqDown" Id="{9ffd2f72-1656-49ba-8c96-34a6d44d670d}">
+      <Declaration><![CDATA[METHOD PUBLIC ReqDown : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ReqDown := FALSE;
+
+IF NOT bInError THEN
+  ReqDown := TRUE;
+  bRequDown := TRUE;
+  _bIsBusy := TRUE;
+  _bIsBusyDown := TRUE;
+END_IF
+
+_bIsDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ReqUp" Id="{ec69f80d-e5ee-4c1c-98fe-52baddfcccbd}">
+      <Declaration><![CDATA[METHOD ReqUp : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ReqUp := FALSE;
+
+IF NOT bInError THEN
+  ReqUp := TRUE;
+  bRequUp := TRUE;
+  _bIsBusy := TRUE;
+  _bIsBusyUp := TRUE;
+END_IF
+
+_bIsDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

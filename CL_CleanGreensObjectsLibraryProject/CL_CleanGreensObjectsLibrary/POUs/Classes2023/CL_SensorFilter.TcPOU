@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_SensorFilter" Id="{3fbc8850-8ba1-43f0-aef9-68666a9bf20c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_SensorFilter
+VAR
+//  FBs
+  fbFiltre    : tof;
+//Other var
+  bInit       : bool;
+//INTERNAL VAR
+  _bSensor_P   : POINTER TO BOOL;
+//use to check if sensor is active and then not possiblew to touch manually
+	_bDontTouch	: BOOL;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF not bInit THEN
+  RETURN;
+END_IF
+fbFiltre(IN:= _bSensor_P^);
+]]></ST>
+    </Implementation>
+    <Property Name="bStatus" Id="{8f4f34bb-d9ed-44bb-894e-b62191b9ed93}">
+      <Declaration><![CDATA[PROPERTY PRIVATE bStatus : bool]]></Declaration>
+      <Get Name="Get" Id="{82e26064-5cfe-4e90-aa01-fca1e27815b7}">
+        <Declaration><![CDATA[PUBLIC 
+VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bStatus := fbFiltre.Q;
+{IF defined (simulation)}
+bStatus := _bSensor_P^;
+{END_IF}
+]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="DoNotTouch" Id="{125fbb8d-6802-48c2-aff7-76e65546adac}">
+      <Declaration><![CDATA[PROPERTY PUBLIC DoNotTouch : BOOL]]></Declaration>
+      <Get Name="Get" Id="{8ccdfec1-80c1-4e99-8476-e90bf19ef6a5}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[DoNotTouch :=_bDontTouch;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{600e7a71-f53b-43cc-8e20-934c52d716f8}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_bDontTouch := DoNotTouch;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="FB_init" Id="{0002acbb-30eb-4ae9-bea9-e7446097ca3c}">
+      <Declaration><![CDATA[METHOD FB_init : BOOL
+VAR_INPUT
+	bInitRetains  : BOOL; // if TRUE, the retain variables are initialized (warm start / cold start)
+	bInCopyCode   : BOOL;  // if TRUE, the instance afterwards gets moved into the copy code (online change)
+  tFiltreTime   : TIME;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[fbFiltre.PT := tFiltreTime;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Init" Id="{83c4dc4d-5714-4596-89b2-f76dffaf78e2}">
+      <Declaration><![CDATA[METHOD Init : BOOL
+VAR_INPUT
+  //IO
+  bSensor_P : POINTER TO BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Init IO
+_bSensor_P := bSensor_P;
+_bDontTouch := FALSE;
+IF _bSensor_P <> 0 THEN
+  bInit := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_GreenhouseSystem" Id="{649a3c98-cef9-49ef-abcc-66e50a4447d0}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_GreenhouseSystem extends CL_Ancestor
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+  nLastStateMachine         : E_StateMachine;
+  nHistoStateMachine_AR     : ARRAY[0..100]OF E_StateMachine;
+  //z                         : UINT;
+  
+  //INTERNAL VAR
+  _nRequestModeMachine      : E_ModeMachine := E_ModeMachine.Automatic;
+  _nModeMachine             : E_ModeMachine := E_ModeMachine.Automatic;
+  _nStateMachine            : E_StateMachine := E_StateMachine.cIdle;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[//State machine histroy
+IF nLastStateMachine <> nStateMachine THEN
+  nLastStateMachine := nStateMachine;  
+  Case01Hysto(nStateMachine);
+END_IF
+
+//Manage Mode machine
+IF _nRequestModeMachine <> nModeMachine AND _nStateMachine = E_StateMachine.cStopped THEN
+	_nModeMachine := _nRequestModeMachine;
+END_IF
+
+]]></ST>
+    </Implementation>
+    <Property Name="nModeMachine" Id="{6ccbbe11-206f-4ece-886c-b3c198b618bd}">
+      <Declaration><![CDATA[PROPERTY nModeMachine : E_ModeMachine]]></Declaration>
+      <Get Name="Get" Id="{e5d8187a-c430-43e9-aea1-e8db6ec3bf3e}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[nModeMachine := _nModeMachine;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{274c2497-a6f8-4743-82d8-aaeef5ae1292}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_nModeMachine := nModeMachine;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="nStateMachine" Id="{b22ca0d4-44a4-40c1-a42d-9361fd4d5108}">
+      <Declaration><![CDATA[PROPERTY nStateMachine : E_StateMachine]]></Declaration>
+      <Get Name="Get" Id="{5ff9b98b-39b3-4b78-a3b5-7b9e8ea604ac}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[nStateMachine := _nStateMachine;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{a4bd60e8-afdc-4af0-a573-39811e224709}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_nStateMachine := nStateMachine;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Method Name="ReqModeMachine" Id="{a96c1e55-f3b4-4370-a009-07d0ab47c4fc}">
+      <Declaration><![CDATA[METHOD ReqModeMachine : BOOL
+VAR_INPUT
+  nModeMachine   :E_ModeMachine;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[_nRequestModeMachine := nModeMachine;]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

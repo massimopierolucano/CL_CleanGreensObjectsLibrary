@@ -1,0 +1,183 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_WorkbenchStackLight" Id="{29e03b63-5d6d-4a9e-a0f1-495ae453fd97}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_WorkbenchStackLight
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+  // Init check boolean
+  bInit : BOOL  :=  FALSE;
+  // 3 colours
+  _bGrLight_P :         POINTER TO BOOL;
+  _bOrLight_P :         POINTER TO BOOL;
+  _bRdLight_P :         POINTER TO BOOL;
+  
+  objRedLight:          CL_WorkbenchRedLight;
+  
+  // Timer, activation boolean and blinking light ref for blinking
+  lightBlinkTimer:    CL_WaitTimer;
+  bAllowBlink:        BOOL              :=  FALSE;
+  bBlinkLight_P:      POINTER TO BOOL;
+  
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(*  Has to be cyclically called  *)
+
+IF bInit AND bAllowBlink THEN
+  THIS^.Blink(bBlinkLight_P);
+END_IF
+
+IF bInit = TRUE THEN
+  objRedLight.Run();  // Update of the RedLight object.
+END_IF]]></ST>
+    </Implementation>
+    <Method Name="Blink" Id="{e5e0b640-8078-499f-a376-f25fe478ec7a}">
+      <Declaration><![CDATA[METHOD PRIVATE Blink : BOOL
+VAR_INPUT
+  bLight_P  : POINTER TO BOOL;
+END_VAR
+
+(*  CONTRACT
+    
+    If the pointer given as input is valid (non null) and correspond to one of 
+    the lights (valid adress), then the function toggles the light each time
+    the timer ligthBlinkTimer reaches its end, and immediately restarts it.
+  *)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bLight_P<>0 AND (bLight_P = _bGrLight_P OR bLight_P = _bOrLight_P OR bLight_P = _bRdLight_P) THEN
+  // The pointer is valid and refers to one of the lights
+  lightBlinkTimer();  // Is this call necessary?
+  IF lightBlinkTimer.End THEN
+    bLight_P^ := NOT bLight_P^;
+    lightBlinkTimer.Start(C.tLWBBlinkHalfPeriod_C);
+	END_IF
+  Blink := TRUE;
+ELSE
+  Blink :=  FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="BlinkingOrange" Id="{ab89bfd8-a49a-4236-af47-faf907d57c3d}">
+      <Declaration><![CDATA[METHOD PUBLIC BlinkingOrange : BOOL
+VAR_INPUT
+END_VAR
+(*  Implicit contract:
+    Preconditions: the method init should have been successfully executed previously  *)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit = TRUE THEN
+  _bGrLight_P^ := 0;
+  _bOrLight_P^ := 1;
+  // _bRdLight_P^ := 0; // Red light directly managed by dedicated object
+  
+  bAllowBlink   :=  TRUE;
+  bBlinkLight_P :=  _bOrLight_P;
+  lightBlinkTimer.Start(C.tLWBBlinkHalfPeriod_C);
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Green" Id="{aec12d3f-7c6c-4eed-bdeb-06f932cb5edf}">
+      <Declaration><![CDATA[METHOD PUBLIC Green : BOOL
+VAR_INPUT
+END_VAR
+
+(*  Implicit contract:
+    Preconditions: the method init should have been successfully executed previously  *)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit = TRUE THEN
+  _bGrLight_P^ := 1;
+  _bOrLight_P^ := 0;
+  //_bRdLight_P^ := 0;  // Red light directly managed by dedicated object
+  
+  bAllowBlink   :=  FALSE;
+END_IF
+  
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Init" Id="{eee97502-b879-478a-8f42-c0e59c212e27}">
+      <Declaration><![CDATA[METHOD PUBLIC Init : BOOL
+VAR_INPUT // Assignement of the values from the outside
+  bGrLight_P :         POINTER TO BOOL;
+  bOrLight_P :         POINTER TO BOOL;
+  bRdLight_P :         POINTER TO BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Init := FALSE;  // Returned value
+IF NOT bInit THEN
+  
+  // Pointers assignement
+  _bGrLight_P := bGrLight_P;
+  _bOrLight_P := bOrLight_P;
+  _bRdLight_P := bRdLight_P;
+  
+  // Init of the Red light object
+  objRedLight.Init(bRdLight_P :=  _bRdLight_P);
+  
+  // Values assignement
+  THIS^.Green();
+  
+  bInit := TRUE;
+  Init := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Orange" Id="{f5a71310-5ac7-4006-bb5a-f858b863955e}">
+      <Declaration><![CDATA[METHOD PUBLIC Orange : BOOL
+VAR_INPUT
+END_VAR
+(*  Implicit contract:
+    Preconditions: the method init should have been successfully executed previously  *)]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit = TRUE THEN
+  _bGrLight_P^ := 0;
+  _bOrLight_P^ := 1;
+  // _bRdLight_P^ := 0; //// Red light directly managed by dedicated object
+  
+  bAllowBlink   :=  FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="redOnly" Id="{486fa96d-71c4-457e-bb98-4248d9ca3174}">
+      <Declaration><![CDATA[METHOD PUBLIC redOnly : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit = TRUE THEN
+  _bGrLight_P^ := 0;
+  _bOrLight_P^ := 0;
+  objRedLight.RedOn();
+  
+  bAllowBlink   :=  FALSE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="startBlinkingError" Id="{f69090be-1693-4c4c-8e47-2e4221f6d0f7}">
+      <Declaration><![CDATA[METHOD PUBLIC startBlinkingError : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit = TRUE THEN
+  objRedLight.BlinkingRed();
+  
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="stopBlinkingError" Id="{364a7522-6fa9-4734-8e09-731c86fe592b}">
+      <Declaration><![CDATA[METHOD PUBLIC stopBlinkingError : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit = TRUE THEN
+  objRedLight.RedOff();
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

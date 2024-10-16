@@ -1,0 +1,333 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_LiftStopper" Id="{df741989-a8ed-4b19-bcc1-69cf0f370d1f}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_LiftStopper
+VAR
+//Error Var
+	bErrorUp          : BOOL;
+	bErrorDown        : BOOL;
+  
+//Seq management
+	nstpMain          : INT := 0;
+  nHistoryStm_AR    : ARRAY[0..C.uiHistoryStep_C] OF INT;
+  nLastStm          : INT := -1;
+
+//Index	
+	i                	: UINT;
+  hi                : INT;
+
+//Other var 
+  bInit             : BOOL;
+  
+//FBs
+	fbTimerLiftUp     : TON ;
+	fbErrorLiftDown   : TON := (PT:= C.tLiftDown_C);
+	fbErrorLiftUp     : TON := (PT:= C.tLiftUp_C);
+	
+//Methods Request
+	bRequUp           : BOOL;
+	bRequDown         : BOOL;
+  
+// INTERNAL VAR 
+  _bSensorDown_P       : POINTER TO BOOL;
+  _bValveUp_P          : POINTER TO BOOL;
+  _objGHSystem_P  : POINTER TO CL_GreenhouseSystem;
+  _bIsBusy             : BOOL;
+  _bIsBusyUP           : BOOL;
+  _bIsBusyDown         : BOOL;
+	_bIsDone             : BOOL;
+  _bDesactiveError     : BOOL;
+  _nLineNumber_P       : POINTER TO INT;
+	
+	// Defect (common to all type of lift)
+	objTimeOutAnyLiftUp  : CL_Defect;	// For every single valve, independent lift
+  objTimeOutAnyLiftDown: CL_Defect;
+END_VAR
+
+VAR CONSTANT
+	nIdle_C             : INT := 0;	// To replace by an enum!
+	WaitUP_C            : INT := 1;
+	nWaitDown_C         : INT := 2;
+	nLiftError_C        : INT := 3;
+END_VAR]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[THIS^.Run();]]></ST>
+    </Implementation>
+    <Property Name="bDesactiveError" Id="{da39f747-3f6d-4f79-aed2-fe6b82bceeaa}">
+      <Declaration><![CDATA[PROPERTY bDesactiveError : bool]]></Declaration>
+      <Get Name="Get" Id="{a4a49689-0a7c-4ee7-8f84-ea87d822ebb2}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bDesactiveError := _bDesactiveError;]]></ST>
+        </Implementation>
+      </Get>
+      <Set Name="Set" Id="{da289747-c78e-40fe-b746-d540b7d82d87}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[_bDesactiveError := bDesactiveError;]]></ST>
+        </Implementation>
+      </Set>
+    </Property>
+    <Property Name="bInError" Id="{51196571-7329-4662-9016-a2592ccf8df3}">
+      <Declaration><![CDATA[PROPERTY bInError : bool]]></Declaration>
+      <Get Name="Get" Id="{2347ea83-ac77-4a71-81ee-f691fde62ea8}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bInError := fbErrorLiftUp.Q or fbErrorLiftDown.Q;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsBusyDown" Id="{459640b5-8bb1-4aa2-853b-c070b2fcfd72}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsBusyDown : bool]]></Declaration>
+      <Get Name="Get" Id="{fb851d32-e920-441b-9e49-0c120ad3b78f}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsBusyDown := _bIsBusyDown;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsBusyUp" Id="{f46d0e64-00f0-4415-ad2a-2bcaca42fdaf}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsBusyUp : bool]]></Declaration>
+      <Get Name="Get" Id="{0955d01b-720a-4cd0-87dd-58d24464a7c9}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsBusyUp := _bIsBusyUp;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsDone" Id="{9388eb39-d507-470c-9b56-2cf8996a217a}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsDone : bool]]></Declaration>
+      <Get Name="Get" Id="{32db51fd-a964-4b06-b114-d40a41672889}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsDone := _bIsDone;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsDown" Id="{bc750336-3708-454b-93de-c8094cdd7021}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsDown : BOOL]]></Declaration>
+      <Get Name="Get" Id="{1a62fb4a-7016-415c-8309-daba44094f90}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsDown := _bSensorDown_P^ AND NOT _bValveUp_P^;//lift is in down position -> sensor is true and valve is power off  isIN]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsNotDown" Id="{328ae9f0-ea44-4a8b-93dd-d29023a7645f}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsNotDown : BOOL]]></Declaration>
+      <Get Name="Get" Id="{117708bb-277d-4957-859e-35da817ff3dd}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsNotDown := NOT bIsDown;//lift is not in down position -> sensor is true and valve is power off]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Property Name="bIsUp" Id="{92e4e175-fb15-4fa5-a099-3e6276671d0c}">
+      <Declaration><![CDATA[PROPERTY PUBLIC bIsUp : bool]]></Declaration>
+      <Get Name="Get" Id="{006005da-961e-4481-9705-dc9ab157df0d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[bIsUp := fbTimerLiftUp.Q ;//elapsed time to assert that the lift is in up position
+{IF defined (debug)}
+//bIsUp := TRUE ;
+{END_IF}]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="DefectUpdate" Id="{27675be4-0bfa-4042-b3d0-43a1b3a8a669}">
+      <Declaration><![CDATA[METHOD DefectUpdate : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Init" Id="{b8098ac5-064b-4007-a4e1-7f360ad919cb}">
+      <Declaration><![CDATA[METHOD Init : BOOL
+VAR_INPUT
+  //Obj
+  objGHSystem_P : POINTER TO CL_GreenhouseSystem;
+  
+  //IO
+  bSensorDown_P	: POINTER TO BOOL;
+  bValveUp_P		: POINTER TO BOOL;
+  //Var
+	tLiftUp				: TIME;
+  nLineNumber_P : POINTER TO INT;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Init Obj
+_objGHSystem_P  := objGHSystem_P;
+
+//Init IO
+_bSensorDown_P  := bSensorDown_P;
+_bValveUp_P := bValveUp_P;
+
+//Init Var
+_nLineNumber_P := nLineNumber_P;
+
+Init := FALSE;
+//Check Init
+IF _bSensorDown_P <> 0 AND _bValveUp_P <> 0 AND _objGHSystem_P <> 0 AND _nLineNumber_P <> 0 THEN	// Not rightly written
+	fbTimerLiftUp.PT := tLiftUp;	// To move inside the InitDefect ? No, but to replace if the same input in any case! Or keep it for sake of clarity.
+  THIS^.InitDefect(iNumInst :=  nLineNumber_P^);	// Init to stabilise
+	
+	// To decide right now, but level to warning
+  Init := bInit := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="InitDefect" Id="{0aa6c578-38e8-43b2-be7f-c7a6aea415fa}">
+      <Declaration><![CDATA[METHOD InitDefect : BOOL
+VAR_INPUT
+	iNumInst	:	INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ReqDown" Id="{81ecfc30-dae2-412e-bab7-1a471bbbcf6f}">
+      <Declaration><![CDATA[METHOD PUBLIC ReqDown : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ReqDown := FALSE;
+
+IF NOT bInError THEN
+  ReqDown := TRUE;
+  bRequDown := TRUE;
+  _bIsBusy := TRUE;
+  _bIsBusyDown := TRUE;
+END_IF
+
+_bIsDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="ReqUp" Id="{dc65eebe-96d4-491e-b5b8-afe535411899}">
+      <Declaration><![CDATA[METHOD ReqUp : BOOL
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[ReqUp := FALSE;
+
+IF NOT bInError THEN
+  ReqUp := TRUE;
+  bRequUp := TRUE;
+  _bIsBusy := TRUE;
+  _bIsBusyUp := TRUE;
+END_IF
+
+_bIsDone := FALSE;]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{e3ccf7b1-a337-4eaa-86d6-40247b32dc5e}">
+      <Declaration><![CDATA[METHOD Run : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF NOT bInit THEN
+  RETURN;
+END_IF
+
+fbTimerLiftUp(IN:= NOT _bSensorDown_P^ AND _bValveUp_P^);//sensor is false and valve is power on -> trigger timer IN from false to true rising edge
+
+IF NOT _bDesactiveError THEN
+	IF _objGHSystem_P^.nModeMachine <> E_ModeMachine.Manual THEN// desactive Error in manual mode
+		fbErrorLiftUp(IN:= _bSensorDown_P^ AND _bValveUp_P^);//lift should going down -> if after the selected time Q is true --> lift error remains UP
+		fbErrorLiftDown(IN:= NOT _bSensorDown_P^ AND NOT _bValveUp_P^);//lift should going up -> if after the selected time Q is true --> lift error remains DOWN
+	END_IF
+	
+	bErrorUp := fbErrorLiftUp.Q;
+	bErrorDown := fbErrorLiftDown.Q;
+	ObjTimeOutAnyLiftUp();
+	ObjTimeOutAnyLiftUp.Set(fbErrorLiftUp.Q);
+	ObjTimeOutAnyLiftDown();
+	ObjTimeOutAnyLiftDown.Set(fbErrorLiftDown.Q);
+
+	
+	IF bErrorUp OR bErrorDown THEN 
+		bRequUP := bRequDown := FALSE;//cancel method request
+		_bIsDone := FALSE;
+		_bIsBusy := FALSE;
+		_bIsBusyDown := FALSE;
+		_bIsBusyUP := FALSE;
+		nstpMain := nLiftError_C;
+	END_IF
+end_if
+
+
+CASE nstpMain OF
+  // -------------------------------------------------
+  nIdle_C:
+    IF bRequUp THEN
+      bRequUP := FALSE;
+      nstpMain := WaitUP_C;
+    ELSIF bRequDown THEN
+      bRequDown := FALSE;
+      nstpMain := nWaitDown_C;
+    END_IF
+  
+  // -------------------------------------------------
+  WaitUP_C:
+    //lift is going up; no sensor available -> return true when calibration time elapsed
+    _bValveUp_P^ := TRUE; //can power on electro-valve
+    IF fbTimerLiftUp.Q  THEN
+      //if after the calibrated time the sensor is true -> error lift is still down; error detected with the timer
+      nstpMain := nIdle_C;
+      _bIsDone := TRUE;
+      _bIsBusy := FALSE;
+      _bIsBusyUp := FALSE;
+    END_IF
+  
+  // -------------------------------------------------
+  nWaitDown_C:
+    IF _bSensorDown_P^  THEN //lift is down -> sensor is true
+      nstpMain := nIdle_C;
+      _bIsDone := TRUE;
+      _bIsBusy := FALSE;
+      _bIsBusyDown := FALSE;
+    ELSE
+     _bValveUp_P^ := FALSE; //sensor is false -> can power off electro-valve
+    END_IF
+    
+  // -------------------------------------------------
+  nLiftError_C:
+    //error handling lift error
+    IF NOT bErrorUp AND  NOT bErrorDown THEN
+      nstpMain := nIdle_C;
+    END_IF
+END_CASE
+
+  
+//Historization of STM
+IF nLastStm <> nstpMain THEN
+  nLastStm := nstpMain;
+  FOR hi := C.uiHistoryStep_C TO 1 BY -1 DO
+    nHistoryStm_AR[hi] := nHistoryStm_AR[hi-1];
+  END_FOR
+  nHistoryStm_AR[0] := nstpMain;
+END_IF
+
+
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

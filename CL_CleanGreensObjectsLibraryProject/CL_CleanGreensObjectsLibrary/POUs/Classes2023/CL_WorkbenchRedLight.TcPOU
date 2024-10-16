@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_WorkbenchRedLight" Id="{551cc3a1-9afa-4abf-b469-697911f84ec1}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_WorkbenchRedLight
+
+VAR
+  // Init check boolean
+  bInit : BOOL  :=  FALSE;
+
+  _bRdLight_P :         POINTER TO BOOL;
+  
+  // Timer, activation boolean and blinking light ref for blinking
+  lightBlinkTimer:    CL_WaitTimer;
+  bAllowBlink:        BOOL              :=  FALSE;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[(* Retro-compatibility *)
+THIS^.Run();]]></ST>
+    </Implementation>
+    <Method Name="BlinkingRed" Id="{4ab1591c-03b8-4710-82cc-271617a5d7f0}">
+      <Declaration><![CDATA[METHOD PUBLIC BlinkingRed : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit THEN
+  _bRdLight_P^:=1;
+  bAllowBlink :=  TRUE;
+  lightBlinkTimer.Start(C.tLWBBlinkHalfPeriod_C);
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Init" Id="{8a3e92e9-82a5-44de-802e-40999b29c2b2}">
+      <Declaration><![CDATA[METHOD PUBLIC Init : BOOL
+VAR_INPUT // Assignement of the values from the outside
+  bRdLight_P :         POINTER TO BOOL;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[Init := FALSE;  // Returned value
+IF NOT bInit THEN
+  
+  // Pointers assignement
+  _bRdLight_P := bRdLight_P;
+  
+  // Values assignement
+  _bRdLight_P^ := 0;
+  
+  bInit := TRUE;
+  Init := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="RedOff" Id="{0794618b-1cd7-4e87-a4b5-dd887c287990}">
+      <Declaration><![CDATA[METHOD PUBLIC RedOff : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit THEN
+  _bRdLight_P^:=0;
+  bAllowBlink :=  FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="RedOn" Id="{5fb77539-6aa4-48d4-b29b-1be309c17f50}">
+      <Declaration><![CDATA[METHOD PUBLIC RedOn : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit THEN
+  _bRdLight_P^:=1;
+  bAllowBlink :=  FALSE;
+END_IF
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Run" Id="{da368c3a-d5d3-4024-9976-46372e651001}">
+      <Declaration><![CDATA[METHOD PUBLIC Run : BOOL
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF bInit AND bAllowBlink THEN
+  lightBlinkTimer();
+  IF lightBlinkTimer.End THEN
+    _bRdLight_P^ := NOT _bRdLight_P^;
+    lightBlinkTimer.Start(C.tLWBBlinkHalfPeriod_C);
+	END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

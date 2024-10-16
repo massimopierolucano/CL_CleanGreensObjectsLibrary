@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_StackLight" Id="{21760129-8ff2-492b-b7e3-d23d8f6a48ee}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_StackLight
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+//FBs
+  fbFlash2    : TON := (PT := T#2S);
+  fbFlash     : TON := (PT := T#1S);
+
+//Other var
+  bInit       : bool;
+
+// INTERNAL VAR 
+ _stStackLight_P    : POINTER TO ST_StackLight_HWQ;
+ _objGreenhouseSystem_P : POINTER TO CL_GreenhouseSystem;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF NOT bInit THEN
+  RETURN;
+END_IF
+//Call FBs
+fbFlash2(in := NOT fbFlash2.Q);
+fbFlash(in :=  fbFlash2.IN);
+
+_stStackLight_P^.bBlue     := FALSE;
+_stStackLight_P^.bBuzzer   := FALSE;
+_stStackLight_P^.bGreen    := FALSE;
+_stStackLight_P^.bOrange   := FALSE;
+_stStackLight_P^.bRed      := FALSE;
+
+CASE _objGreenhouseSystem_P^.nStateMachine OF
+  E_StateMachine.cIdle:
+    _stStackLight_P^.bGreen := fbFlash.Q;
+  
+  E_StateMachine.cStarting:
+    _stStackLight_P^.bGreen := TRUE;
+    _stStackLight_P^.bBuzzer := TRUE;
+  
+  E_StateMachine.cExecute:
+    _stStackLight_P^.bGreen := TRUE;
+  
+  E_StateMachine.cStopping:
+    _stStackLight_P^.bRed := TRUE;
+  
+  E_StateMachine.cStopped:
+    _stStackLight_P^.bRed := TRUE;
+  
+  E_StateMachine.cAborting:
+    _stStackLight_P^.bRed := fbFlash.Q;
+  
+  E_StateMachine.cAborted:
+    _stStackLight_P^.bRed := fbFlash.Q;
+  
+  E_StateMachine.cClearing:
+    _stStackLight_P^.bRed := fbFlash.Q;
+  
+  E_StateMachine.cResetting:
+    _stStackLight_P^.bRed := TRUE;
+END_CASE
+]]></ST>
+    </Implementation>
+    <Method Name="Init" Id="{edfe5d86-3b80-41a2-b8d7-755ebe9bd271}">
+      <Declaration><![CDATA[METHOD Init : BOOL
+VAR_INPUT
+  //IO
+  stStackLight_P : POINTER TO ST_StackLight_HWQ;
+  
+  //Obj
+  objGreenhouseSystem_P : POINTER TO CL_GreenhouseSystem;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//Init IO
+_stStackLight_P := stStackLight_P;
+_objGreenhouseSystem_P := objGreenhouseSystem_P;
+
+IF _stStackLight_P <> 0 AND _objGreenhouseSystem_P <> 0 THEN
+  bInit := TRUE;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

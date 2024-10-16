@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_WaitTimer" Id="{4546259e-d86a-4929-a500-8d7f759296e9}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK PUBLIC CL_WaitTimer EXTENDS TON
+VAR
+	bInit : BOOL := FALSE;
+	bEnd  : BOOL := false;
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[IF bInit THEN 
+	SUPER^();
+END_IF
+]]></ST>
+    </Implementation>
+    <Property Name="End" Id="{e776d9db-38f5-480a-9023-014e5daf2156}">
+      <Declaration><![CDATA[PROPERTY PUBLIC End : BOOL]]></Declaration>
+      <Get Name="Get" Id="{cdff159b-4381-411f-bbbd-0e0bd6f17a9a}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[IF bEnd THEN
+	bInit := FALSE;
+	SUPER^.IN := FALSE;
+	SUPER^();
+ELSE
+	bEnd := SUPER^.Q;
+END_IF
+End := bEnd;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Start" Id="{c91465b1-c51f-4de5-888a-20afd3ca170b}">
+      <Declaration><![CDATA[METHOD PUBLIC Start
+VAR_INPUT
+	tWaitTime : TIME;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[bInit := TRUE;
+bEnd := FALSE;
+
+IF SUPER^.ET > T#0S THEN
+	SUPER^.IN := FALSE;
+	SUPER^();
+END_IF
+
+SUPER^.PT := tWaitTime;
+SUPER^.IN := TRUE;
+]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

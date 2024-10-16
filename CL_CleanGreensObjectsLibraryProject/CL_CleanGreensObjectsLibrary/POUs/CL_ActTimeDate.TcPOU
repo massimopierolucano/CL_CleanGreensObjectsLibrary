@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <POU Name="CL_ActTimeDate" Id="{20708e91-9fa3-4e52-86b1-1282928614e4}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_ActTimeDate
+VAR
+  //GetGlobalTimeDate Method variables
+	fbTime   								: FB_LocalSystemTime;
+	WaitNextUpdTime					: CL_WaitTimer;
+	bWaitNextUpdTime				: BOOL := TRUE;
+	bTimeValidFound					: BOOL := FALSE;
+  
+  dtActTime								: DATE_AND_TIME;
+  sysTimeActTime          : TIMESTRUCT;
+	sActTime    						: T_MaxString;//must be size 255 otherwise SYSTEMTIME_TO_STRING doesn't work!
+  sActTimeNoYear    			: STRING(32);
+END_VAR
+]]></Declaration>
+    <Implementation>
+      <ST><![CDATA[this^.Run();]]></ST>
+    </Implementation>
+    <Property Name="GetDateTime" Id="{75118f03-85b8-4a51-8410-b18704ae66ce}">
+      <Declaration><![CDATA[PROPERTY PUBLIC GetDateTime : date_and_time]]></Declaration>
+      <Get Name="Get" Id="{9520f966-275b-4c42-a024-dc3a4da2457d}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[GetDateTime := dtActTime;]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="GetStrDateTime" Id="{53376e12-8f92-4b59-a8a8-0bb1d87570d2}">
+      <Declaration><![CDATA[METHOD PUBLIC GetStrDateTime : string(32)
+VAR_INPUT
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[sActTime := SYSTEMTIME_TO_STRING(sysTimeActTime);
+sActTime := DELETE(sActTime, 4, LEN(sActTime)-4); 
+GetStrDateTime := sActTime;
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="GetStrDateTimeNoYear" Id="{e5931c2e-0adb-4bd0-9179-f72b5defa26f}">
+      <Declaration><![CDATA[METHOD PUBLIC GetStrDateTimeNoYear : string(32)
+VAR
+  sDay    : T_MaxString;
+  sMonth  : T_MaxString;
+END_VAR]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[sActTimeNoYear := GetStrDateTime();
+sActTimeNoYear := DELETE(sActTime, 5, 1); 
+sActTimeNoYear := REPLACE(sActTimeNoYear, ' ',1,6);
+sMonth := Left(sActTimeNoYear,2);
+sActTimeNoYear := DELETE(sActTimeNoYear, 4, 0); 
+sDay := Left(sActTimeNoYear,2);
+sActTimeNoYear := DELETE(sActTimeNoYear, 3, 0);
+sDay := concat(sDay,'/');
+sDay := concat(sDay, sMonth);
+sActTimeNoYear := concat(sDay,sActTimeNoYear);
+
+GetStrDateTimeNoYear := sActTimeNoYear;]]></ST>
+      </Implementation>
+    </Method>
+    <Property Name="GetSysTime" Id="{d6fe3211-532f-485a-85f1-81f6fdf95470}">
+      <Declaration><![CDATA[PROPERTY PUBLIC GetSysTime : pointer to TIMESTRUCT]]></Declaration>
+      <Get Name="Get" Id="{1db03c5d-73a5-4281-aab9-c45bed7b22af}">
+        <Declaration><![CDATA[VAR
+END_VAR
+]]></Declaration>
+        <Implementation>
+          <ST><![CDATA[GetSysTime := adr(sysTimeActTime);]]></ST>
+        </Implementation>
+      </Get>
+    </Property>
+    <Method Name="Run" Id="{b64ec337-f376-4a63-a110-9bd991e0eb10}">
+      <Declaration><![CDATA[METHOD PRIVATE Run
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[//read every C.WaitNextUpdTime date and time and write it in dtActTime and sActTime 
+WaitNextUpdTime();
+IF bWaitNextUpdTime THEN	// If timeout, allow a new measure
+	bWaitNextUpdTime := FALSE;
+	bTimeValidFound := FALSE;
+	WaitNextUpdTime.Start(C.tWaitNextUpdTime_C);
+	fbTime(sNetID := '', bEnable := TRUE, dwCycle := 1);	// Synchronisation time of 1 second, different from tWaitNextUpdTime_C
+ELSE
+	IF NOT bTimeValidFound THEN 
+		fbTime();	// System FB to get the Windows time (see definition in the library)
+		IF fbTime.bValid THEN
+			bTimeValidFound := TRUE;
+      sysTimeActTime := fbTime.systemTime;
+			dtActTime := SYSTEMTIME_TO_DT(sysTimeActTime);  
+ 		END_IF
+	END_IF
+	bWaitNextUpdTime := WaitNextUpdTime.End;
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+  </POU>
+</TcPlcObject>

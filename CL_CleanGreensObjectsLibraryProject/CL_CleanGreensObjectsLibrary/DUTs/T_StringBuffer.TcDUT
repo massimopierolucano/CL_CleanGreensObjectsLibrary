@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="T_StringBuffer" Id="{b5fc64ff-ca2a-456c-8f41-a0ccad82cff1}">
+    <Declaration><![CDATA[TYPE T_StringBuffer : string(3500); END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

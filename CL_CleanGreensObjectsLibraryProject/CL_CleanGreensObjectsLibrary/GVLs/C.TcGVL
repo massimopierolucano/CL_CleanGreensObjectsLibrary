@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <GVL Name="C" Id="{0308330d-e4af-4094-9b92-88c207c3c970}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT 
+  tWaitNextUpdTime_C 	                : TIME := T#5S; (* Used in the method GetGlobalTimeDate of the program Main (time for a CL_Waiter instance)
+																								- Every elapse time specified by the constant, the current time of the PLC is acquired, and stored in two GVL variables
+																								° dtActTime, the date and time in its native format, which is used in several places were the current time need to know (for example: Telegram messages)
+																								° sActTime, which is the translation of the date and time into a STRING, and is only used in the code for the VISU of the Entry and Exit zones!
+																								It should be noted that a private property of the CL_DefectManager have the exact same name, and is measured with an instance of NT_GetTime instead of FB_LocalSystemTime!
+																								- Therefore, it is a non-blocking pooling of the time with the cycle time defined here!*)	
+	//LiftWorkbench Stacklight
+	tLWBBlinkHalfPeriod_C               : TIME :=  T#350MS; // Used for every blinking stacklight
+	
+  //Lift error constant
+	tLiftDown_C 											  : TIME := T#10S;
+	tLiftUp_C  												  : TIME := T#10S;
+
+  //Stopper error constant
+	tStopperDown_C 											: TIME := T#5S;
+	tStopperUp_C  											: TIME := T#5S;
+
+  //Loader Constant
+  tLoaderExtand_C                     : TIME := T#20S;
+  tLoaderRetract_C                    : TIME := T#15S;
+
+  //debug
+	//uiHistoryStep_C										  : INT := 50;
+  uiHistoStep_C                       : INT := 50;
+ END_VAR
+]]></Declaration>
+  </GVL>
+</TcPlcObject>
