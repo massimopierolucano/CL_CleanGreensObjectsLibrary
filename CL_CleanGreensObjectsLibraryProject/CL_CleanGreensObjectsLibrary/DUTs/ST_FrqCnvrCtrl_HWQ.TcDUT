@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_FrqCnvrCtrl_HWQ" Id="{7f55dcea-d0a6-454b-87c1-f5aa65599756}">
+    <Declaration><![CDATA[TYPE ST_FrqCnvrCtrl_HWQ :
+STRUCT
+  bMoveFW_gq     : BOOL;
+  bMoveBW_gq     : BOOL;
+  bHighSpeed_gq  : BOOL;
+  bReset_gq      : BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

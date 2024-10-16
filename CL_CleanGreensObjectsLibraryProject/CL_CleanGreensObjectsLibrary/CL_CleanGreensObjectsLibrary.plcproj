@@ -19,7 +19,7 @@
     <Company>CleanGreens SA</Company>
     <Released>true</Released>
     <Title>CL_CleanGreensObjectsLibrary</Title>
-    <ProjectVersion>2.0</ProjectVersion>
+    <ProjectVersion>2.0.1</ProjectVersion>
     <LibraryCategories>
       <LibraryCategory xmlns="">
         <Id>{43ba0754-6919-43b3-a5b3-d04b4efb2ad6}</Id>
@@ -45,7 +45,22 @@
     <Placeholder>CGS_ObjectsLibrary</Placeholder>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DUTs\E_ModeMachine.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\E_SeqLoader.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\E_StateMachine.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\ST_FrqCnvrCtrl_HWQ.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DUTs\ST_LineReference.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\ST_StackLight_HWQ.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\T_StringBuffer.TcDUT">

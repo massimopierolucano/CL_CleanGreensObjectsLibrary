@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="E_SeqLoader" Id="{b4d32e7b-70e9-450c-8f06-6fa593492a50}">
+    <Declaration><![CDATA[{attribute 'qualified_only'}
+{attribute 'strict'}
+TYPE E_SeqLoader :
+(
+  cIdle           := 0,
+  cStartExtend       ,
+  cMovingExtend      ,
+  cTargetReached      ,
+  cStartRetract      ,
+  cMovingRetract     ,
+  cEndMovement        ,
+  cError
+);
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>

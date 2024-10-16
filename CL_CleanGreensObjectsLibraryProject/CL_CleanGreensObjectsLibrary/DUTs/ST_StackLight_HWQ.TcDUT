@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+  <DUT Name="ST_StackLight_HWQ" Id="{ec4e5818-ff53-4753-8707-051c74dec72f}">
+    <Declaration><![CDATA[TYPE ST_StackLight_HWQ :
+STRUCT
+  bBlue     : BOOL;
+  bGreen    : BOOL;
+  bOrange   : BOOL;
+  bRed      : BOOL;
+  bBuzzer   : BOOL;
+END_STRUCT
+END_TYPE
+]]></Declaration>
+  </DUT>
+</TcPlcObject>
