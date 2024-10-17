@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
   <POU Name="CL_FrequencyConverter" Id="{a008f149-09f6-43ae-87e7-a4637f1f158e}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK CL_FrequencyConverter EXTENDS CL_Ancestor
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_FrequencyConverter EXTENDS CL_MasterRootClass
 VAR
   //Actual OP
   bIsBusyMoveBW                   : BOOL;
@@ -27,9 +27,9 @@ VAR
   fbTimeClearing                  : Ton:= (PT:=T#1S);     
   
 // INTERNAL VAR
-  _bFrqConvReady_P     : POINTER TO BOOL;
-  _bFrqConvRunning_P   : POINTER TO BOOL;
-  _stFrqConvOutput_P   : POINTER TO ST_FrqCnvrCtrl_HWQ;
+  _bFrqConvReady_P                : POINTER TO BOOL;
+  _bFrqConvRunning_P              : POINTER TO BOOL;
+  _stFrqConvOutput_P              : POINTER TO ST_FrqCnvrCtrl_HWQ;
   _bSpeedReached                  : BOOL;
 
   
@@ -126,7 +126,7 @@ CASE nStep OF
 
 END_CASE
 
-Case01Hysto(nStep);]]></ST>
+//Case01Hysto(nStep);]]></ST>
     </Implementation>
     <Property Name="bIsReady" Id="{a6551139-eb1e-435b-be02-cc60a51dc4b6}">
       <Declaration><![CDATA[PROPERTY bIsReady : bool]]></Declaration>
