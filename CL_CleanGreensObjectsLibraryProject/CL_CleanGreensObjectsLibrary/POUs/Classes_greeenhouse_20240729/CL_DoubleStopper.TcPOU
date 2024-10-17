@@ -18,8 +18,8 @@ RFIDStopperDown
 FUNCTION_BLOCK CL_DoubleStopper
 VAR
 //Defect
-  //objTimeOutStopperUp  : CL_Defect; (*	Not used, so no way to check if the object is working or not	*)
-  //objTimeOutStopperDown: CL_Defect;
+  objTimeOutStopperUp  : CL_Defect; (*	Not used, so no way to check if the object is working or not	*)
+  objTimeOutStopperDown: CL_Defect;
 
 //Error Var
 	bErrorUp          : BOOL;
