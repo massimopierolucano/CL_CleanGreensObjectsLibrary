@@ -19,7 +19,7 @@
     <Company>CleanGreens SA</Company>
     <Released>true</Released>
     <Title>CL_CleanGreensObjectsLibrary</Title>
-    <ProjectVersion>2.0.3</ProjectVersion>
+    <ProjectVersion>2.1.1</ProjectVersion>
     <LibraryCategories>
       <LibraryCategory xmlns="">
         <Id>{43ba0754-6919-43b3-a5b3-d04b4efb2ad6}</Id>
@@ -72,7 +72,7 @@
     <Compile Include="PlcTask.TcTTO">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="POUs\Classes2023\CL_Ancestor.TcPOU">
+    <Compile Include="POUs\Classes2023\CL_Ancestor_old.TcPOU">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\Classes2023\CL_Button.TcPOU">
@@ -142,6 +142,14 @@
     <Folder Include="POUs" />
   </ItemGroup>
   <ItemGroup>
+    <PlaceholderReference Include="CGS_DefectManager">
+      <DefaultResolution>CL_DefectManager, * (CleanGreens SA)</DefaultResolution>
+      <Namespace>CL_DefectManager</Namespace>
+    </PlaceholderReference>
+    <PlaceholderReference Include="CGS_ErrorsDatabase">
+      <DefaultResolution>CL_ErrorsDatabase, * (CleanGreens SA)</DefaultResolution>
+      <Namespace>CL_ErrorsDatabase</Namespace>
+    </PlaceholderReference>
     <PlaceholderReference Include="Tc2_Standard">
       <DefaultResolution>Tc2_Standard, * (Beckhoff Automation GmbH)</DefaultResolution>
       <Namespace>Tc2_Standard</Namespace>

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
   <POU Name="CL_GreenhouseSystem" Id="{649a3c98-cef9-49ef-abcc-66e50a4447d0}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK CL_GreenhouseSystem extends CL_Ancestor
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_GreenhouseSystem extends CL_MasterRootClass
 VAR_INPUT
 END_VAR
 VAR_OUTPUT

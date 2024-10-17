@@ -18,8 +18,8 @@ RFIDStopperDown
 FUNCTION_BLOCK CL_DoubleStopper
 VAR
 //Defect
-  objTimeOutStopperUp  : CL_Defect; (*	Not used, so no way to check if the object is working or not	*)
-  objTimeOutStopperDown: CL_Defect;
+  //objTimeOutStopperUp  : CL_Defect; (*	Not used, so no way to check if the object is working or not	*)
+  //objTimeOutStopperDown: CL_Defect;
 
 //Error Var
 	bErrorUp          : BOOL;
@@ -27,8 +27,6 @@ VAR
   
 //Seq management
 	nstpMain          : INT := 0;
-  nHistoryStm_AR    : ARRAY[0..C.uiHistoryStep_C] OF INT;
-  nLastStm          : INT := -1;
 
 //Index	
   i                 : INT;
@@ -75,30 +73,6 @@ _bSensorStp1Down := _bSensorStp1Down_P^;
 
 fbTimerStopperUp(IN:= NOT _bSensorStp1Down AND _bValveUp_P^);//sensor is false and valve is power on -> trigger timer IN from false to true rising edge
 
-(*IF NOT _bDesactiveError THEN
-	IF _objGHSystem_P^.nModeMachine <> E_ModeMachine.Manual THEN// desactive Error in manual mode
-		fbErrorStopperUp(IN:= _bSensorStp1Down AND _bValveUp_P^);//stopper should go down -> if after the selected time Q is true --> stopper error remains UP
-		fbErrorStopperDown(IN:= NOT _bSensorStp1Down AND NOT _bValveUp_P^);//stopper should go up -> if after the selected time Q is true --> stopper error remains DOWN
-	END_IF
-	
-//	bErrorUp := fbErrorStopperUp.Q;
-//	bErrorDown := fbErrorStopperDown.Q;
-	objTimeOutStopperUp();
-//	objTimeOutStopperUp.SetState(fbErrorStopperUp.Q);
-	objTimeOutStopperDown();
-//	objTimeOutStopperDown.SetState(fbErrorStopperDown.Q);
-	
-	IF bErrorUp OR bErrorDown THEN 
-		bRequUP := bRequDown := FALSE;//cancel method request
-		_bIsDone := FALSE;
-		_bIsBusy := FALSE;
-		_bIsBusyDown := FALSE;
-		_bIsBusyUP := FALSE;
-		nstpMain := nLiftError_C;
-	END_IF
-END_IF*)
-
-
 CASE nstpMain OF
   // -------------------------------------------------
   nIdle_C:
@@ -143,16 +117,7 @@ END_CASE
 
   
 //Historization of STM
-IF nLastStm <> nstpMain THEN
-  nLastStm := nstpMain;
-  FOR i := C.uiHistoryStep_C TO 1 BY -1 DO
-    nHistoryStm_AR[i] := nHistoryStm_AR[i-1];
-  END_FOR
-  nHistoryStm_AR[0] := nstpMain;
-END_IF
-
-
-]]></ST>
+//Case01Hysto(nstpMain);]]></ST>
     </Implementation>
     <Property Name="bDesactiveError" Id="{d62945b6-3bb0-47d4-a220-5cb1b2429b23}">
       <Declaration><![CDATA[PROPERTY bDesactiveError : bool]]></Declaration>

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
-  <POU Name="CL_Ancestor" Id="{356c446d-fcbc-4fc2-8cdf-9338be0ee62c}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK CL_Ancestor
+  <POU Name="CL_Ancestor_old" Id="{356c446d-fcbc-4fc2-8cdf-9338be0ee62c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_Ancestor_old
 VAR
 	i01                         : INT;
   nHistoryStep_AR01           : ARRAY[0..C.uiHistoStep_C] OF DINT;
@@ -22,7 +22,7 @@ END_VAR
     <Method Name="Case01Hysto" Id="{51eca9b2-a753-468f-99d8-dc23db904e82}">
       <Declaration><![CDATA[METHOD Case01Hysto : BOOL
 VAR_INPUT
-	nStep : DINT;
+	nStep : INT;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -38,7 +38,7 @@ END_IF]]></ST>
     <Method Name="Case02Hysto" Id="{98c1a5bd-d908-4c59-b3c2-7bf3cc6ed80d}">
       <Declaration><![CDATA[METHOD Case02Hysto : BOOL
 VAR_INPUT
-	nStep : DINT;
+	nStep : INT;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -54,7 +54,7 @@ END_IF]]></ST>
     <Method Name="Case03Hysto" Id="{8829e92f-c82f-459d-9a10-713915a809fe}">
       <Declaration><![CDATA[METHOD Case03Hysto : BOOL
 VAR_INPUT
-	nStep : DINT;
+	nStep : INT;
 END_VAR
 ]]></Declaration>
       <Implementation>

@@ -10,15 +10,15 @@ VAR
   _IrrLine                    : ST_LineReference;
   
   i01                         : INT;
-  nHistoryStep_AR01           : ARRAY[0..C.uiHistoStep_C] OF DINT;
+  nHistoryStep_AR01           : ARRAY[0..C.uiHistoStep_C] OF INT;
   nLastStep01                 : DINT := -1;
   
   i02                         : INT;
-  nHistoryStep_AR02           : ARRAY[0..C.uiHistoStep_C] OF DINT;
+  nHistoryStep_AR02           : ARRAY[0..C.uiHistoStep_C] OF INT;
   nLastStep02                 : DINT := -1;
   
   i03                         : INT;
-  nHistoryStep_AR03           : ARRAY[0..C.uiHistoStep_C] OF DINT;
+  nHistoryStep_AR03           : ARRAY[0..C.uiHistoStep_C] OF INT;
   nLastStep03                 : DINT := -1;
 END_VAR
 ]]></Declaration>
@@ -44,7 +44,7 @@ END_IF]]></ST>
     <Method Name="Case02Hysto" Id="{cace08ae-d093-4911-a476-ba59f8020058}">
       <Declaration><![CDATA[METHOD Case02Hysto : BOOL
 VAR_INPUT
-	nStep : DINT;
+	nStep : INT;
 END_VAR
 ]]></Declaration>
       <Implementation>
@@ -60,7 +60,7 @@ END_IF]]></ST>
     <Method Name="Case03Hysto" Id="{77821689-f15f-4e51-9533-ac651e8d11f9}">
       <Declaration><![CDATA[METHOD Case03Hysto : BOOL
 VAR_INPUT
-	nStep : DINT;
+	nStep : INT;
 END_VAR
 ]]></Declaration>
       <Implementation>

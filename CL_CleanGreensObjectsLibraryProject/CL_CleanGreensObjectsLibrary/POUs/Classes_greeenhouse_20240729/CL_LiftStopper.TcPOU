@@ -9,8 +9,6 @@ VAR
   
 //Seq management
 	nstpMain          : INT := 0;
-  nHistoryStm_AR    : ARRAY[0..C.uiHistoryStep_C] OF INT;
-  nLastStm          : INT := -1;
 
 //Index	
 	i                	: UINT;
@@ -256,12 +254,9 @@ IF NOT _bDesactiveError THEN
 	
 	bErrorUp := fbErrorLiftUp.Q;
 	bErrorDown := fbErrorLiftDown.Q;
-	ObjTimeOutAnyLiftUp();
 	ObjTimeOutAnyLiftUp.Set(fbErrorLiftUp.Q);
-	ObjTimeOutAnyLiftDown();
 	ObjTimeOutAnyLiftDown.Set(fbErrorLiftDown.Q);
 
-	
 	IF bErrorUp OR bErrorDown THEN 
 		bRequUP := bRequDown := FALSE;//cancel method request
 		_bIsDone := FALSE;
@@ -317,13 +312,7 @@ END_CASE
 
   
 //Historization of STM
-IF nLastStm <> nstpMain THEN
-  nLastStm := nstpMain;
-  FOR hi := C.uiHistoryStep_C TO 1 BY -1 DO
-    nHistoryStm_AR[hi] := nHistoryStm_AR[hi-1];
-  END_FOR
-  nHistoryStm_AR[0] := nstpMain;
-END_IF
+//Case01Hysto(nstpMain);
 
 
 ]]></ST>
