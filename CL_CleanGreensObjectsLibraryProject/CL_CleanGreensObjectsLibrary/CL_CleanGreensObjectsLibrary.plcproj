@@ -19,7 +19,7 @@
     <Company>CleanGreens SA</Company>
     <Released>true</Released>
     <Title>CL_CleanGreensObjectsLibrary</Title>
-    <ProjectVersion>2.1.3</ProjectVersion>
+    <ProjectVersion>2.2</ProjectVersion>
     <LibraryCategories>
       <LibraryCategory xmlns="">
         <Id>{43ba0754-6919-43b3-a5b3-d04b4efb2ad6}</Id>
@@ -54,10 +54,16 @@
     <Compile Include="DUTs\E_StateMachine.TcDUT">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DUTs\ST_ConfigMsgBuild.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DUTs\ST_FrqCnvrCtrl_HWQ.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\ST_LineReference.TcDUT">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DUTs\ST_ShowMsgFields.TcDUT">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DUTs\ST_StackLight_HWQ.TcDUT">
