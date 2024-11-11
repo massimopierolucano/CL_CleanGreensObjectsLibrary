@@ -19,7 +19,7 @@
     <Company>CleanGreens SA</Company>
     <Released>true</Released>
     <Title>CL_CleanGreensObjectsLibrary</Title>
-    <ProjectVersion>2.2.4</ProjectVersion>
+    <ProjectVersion>2.2.4.2</ProjectVersion>
     <LibraryCategories>
       <LibraryCategory xmlns="">
         <Id>{43ba0754-6919-43b3-a5b3-d04b4efb2ad6}</Id>
@@ -136,6 +136,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="POUs\CL_MasterRootClass.TcPOU">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="POUs\CL_MasterRootClass_old.TcPOU">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
-  <POU Name="CL_MasterRootClass" Id="{6416eb53-819f-454a-be2c-5d7c505255f8}" SpecialFunc="None">
-    <Declaration><![CDATA[FUNCTION_BLOCK CL_MasterRootClass
+  <POU Name="CL_MasterRootClass_old" Id="{92d25d2e-4038-4367-a45e-53b08684dc3c}" SpecialFunc="None">
+    <Declaration><![CDATA[FUNCTION_BLOCK CL_MasterRootClass_old
 VAR
   //_nThisIrrLine is either the GHSpan or the Irrigation line.  The irrigation line is some installation coincides with the GHSpan, in other installation is one of the 2 lines of the GHSpan
   //_nThisIrrLine               : UINT :=0; //contain the irrigation line = irrigation line array index to which the object refer to
@@ -25,7 +25,7 @@ END_VAR
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
-    <Method Name="Case01Hysto" Id="{0aa6b2c9-6160-41f5-9183-4942fca130c3}">
+    <Method Name="Case01Hysto" Id="{c21a2dba-35ab-4cc2-91c9-ebd77c3d948b}">
       <Declaration><![CDATA[METHOD Case01Hysto : BOOL
 VAR_INPUT
 	nStep : INT;
@@ -42,7 +42,7 @@ END_VAR
 END_IF]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Case01HystoRev" Id="{4624d27f-c2e8-4133-95d0-326f305b5a38}">
+    <Method Name="Case01HystoRev" Id="{05c1cd39-1341-4456-acbf-aaabc40f38ff}">
       <Declaration><![CDATA[METHOD Case01HystoRev : BOOL
 VAR_INPUT
 	nStep : INT;
@@ -58,7 +58,7 @@ END_VAR
 END_IF]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Case02Hysto" Id="{cdb7c116-0bc9-4ba7-a7b5-2b5c099e40a5}">
+    <Method Name="Case02Hysto" Id="{a2444fb3-18dd-43f4-b541-ebf6036e4d70}">
       <Declaration><![CDATA[METHOD Case02Hysto : BOOL
 VAR_INPUT
 	nStep : INT;
@@ -75,7 +75,7 @@ END_VAR
 END_IF]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Case02HystoRev" Id="{f1440564-8deb-4d57-b454-a19c605e7baa}">
+    <Method Name="Case02HystoRev" Id="{4221a86b-9ab8-416c-9669-0164f1154473}">
       <Declaration><![CDATA[METHOD Case02HystoRev : BOOL
 VAR_INPUT
 	nStep : INT;
@@ -91,7 +91,7 @@ END_VAR
 END_IF]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Case03Hysto" Id="{d6c013cf-a779-43cd-84d0-8ccfaca6ccf1}">
+    <Method Name="Case03Hysto" Id="{1ab83e67-a34d-442d-9abc-a21e249fb1a6}">
       <Declaration><![CDATA[METHOD Case03Hysto : BOOL
 VAR_INPUT
 	nStep : INT;
@@ -108,7 +108,7 @@ END_VAR
 END_IF]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Case03HystoRev" Id="{78e2e3cb-5e3e-4276-b7e2-ad4dcd3af684}">
+    <Method Name="Case03HystoRev" Id="{eddf62dc-2e7c-4166-9738-717fe887a6ec}">
       <Declaration><![CDATA[METHOD Case03HystoRev : BOOL
 VAR_INPUT
 	nStep : INT;
@@ -124,7 +124,7 @@ END_VAR
 END_IF]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Clear01Hysto" Id="{51d43e70-0d64-400d-901c-00f10a58a5e7}">
+    <Method Name="Clear01Hysto" Id="{757feae8-ce88-4503-a180-25caa29299c8}">
       <Declaration><![CDATA[METHOD Clear01Hysto : BOOL
 VAR_INPUT
 	nStep : INT;
@@ -137,7 +137,7 @@ END_FOR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Clear02Hysto" Id="{3f6d4206-16cd-4866-a99f-e1e005e2b77a}">
+    <Method Name="Clear02Hysto" Id="{2ec5d523-bbc8-4d9a-ae4e-d82efd5bfa84}">
       <Declaration><![CDATA[METHOD Clear02Hysto : BOOL
 VAR_INPUT
 	nStep : INT;
@@ -150,7 +150,7 @@ END_FOR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Clear03Hysto" Id="{5bb6b0de-4ec2-4587-8e34-cf730f01da4d}">
+    <Method Name="Clear03Hysto" Id="{23c5198b-2248-4d9d-a536-f429a2c3edd2}">
       <Declaration><![CDATA[METHOD Clear03Hysto : BOOL
 VAR_INPUT
 	nStep : INT;
@@ -163,9 +163,9 @@ END_FOR
 ]]></ST>
       </Implementation>
     </Method>
-    <Property Name="MRIrrLine" Id="{95aad86b-cb73-4e5a-a3fb-58ef26d36b1d}">
+    <Property Name="MRIrrLine" Id="{a62cf50e-0076-49bb-925b-c951f230b89c}">
       <Declaration><![CDATA[PROPERTY PUBLIC MRIrrLine : UINT]]></Declaration>
-      <Get Name="Get" Id="{374068a7-55b8-4aa5-bd14-2b81c7c23852}">
+      <Get Name="Get" Id="{ac628814-c561-4cfd-9afd-12c62979e6ff}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -173,7 +173,7 @@ END_VAR
           <ST><![CDATA[MRIrrLine := _IrrLine.nThis;]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{8b7ac883-e518-47ff-8a5e-478c034720c8}">
+      <Set Name="Set" Id="{aa2ee292-0fcc-4562-a706-6d95519b76ba}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -182,9 +182,9 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="MRIrrLineFixedID" Id="{5fde83b1-e395-4852-a9f5-4f261093fe6f}">
+    <Property Name="MRIrrLineFixedID" Id="{f073a66a-e12a-4769-83ce-c9de4fb06daa}">
       <Declaration><![CDATA[PROPERTY PUBLIC MRIrrLineFixedID : UINT]]></Declaration>
-      <Get Name="Get" Id="{564f7afd-7d42-4e36-b0f9-a28570fa169f}">
+      <Get Name="Get" Id="{f78e31cb-def3-4767-a6a4-f388e148c0b6}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -192,7 +192,7 @@ END_VAR
           <ST><![CDATA[MRIrrLineFixedID := _IrrLine.nFixedID;]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{f1ea645b-befd-4bbe-8ad8-81cc66df852e}">
+      <Set Name="Set" Id="{2ccb50ab-cf67-449c-80e5-588f1b5ac48f}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -201,9 +201,9 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="MRLineRef" Id="{ff17a73d-3768-4fcd-ad52-a421d6e6c1dd}">
+    <Property Name="MRLineRef" Id="{bac79d96-2606-4306-b34f-d5a6c1117aaa}">
       <Declaration><![CDATA[PROPERTY PUBLIC MRLineRef : ST_LineReference]]></Declaration>
-      <Get Name="Get" Id="{d1c8dbef-3b0f-4f31-841b-ce6e7c1f4c8b}">
+      <Get Name="Get" Id="{8bcc770a-96f5-40e1-9a72-5d56750996a7}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -211,7 +211,7 @@ END_VAR
           <ST><![CDATA[MRLineRef := _IrrLine;]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{d42956a6-aed7-4374-99a3-f3e4bc62ba5a}">
+      <Set Name="Set" Id="{e96f5dba-3745-495f-b046-686eb7fc2f4f}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
