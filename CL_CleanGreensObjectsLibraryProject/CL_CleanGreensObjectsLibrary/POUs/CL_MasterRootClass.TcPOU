@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.12">
+<TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
   <POU Name="CL_MasterRootClass" Id="{f256ed98-ffc6-46a6-9a30-eba677a2a6f4}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK CL_MasterRootClass
 VAR
@@ -51,7 +51,7 @@ END_VAR
         <ST><![CDATA[IF nStep <> nLastStep02 THEN
   nLastStep02 := nStep;
   FOR i02:= C.uiHistoStep_C TO 1 BY -1 DO
-    nHistoryStep_AR02[i02] := nHistoryStep_AR01[i02-1];
+    nHistoryStep_AR02[i02] := nHistoryStep_AR02[i02-1];
   END_FOR
   nHistoryStep_AR02[0] := nStep;
 END_IF]]></ST>
@@ -67,10 +67,49 @@ END_VAR
         <ST><![CDATA[IF nStep <> nLastStep03 THEN
   nLastStep03 := nStep;
   FOR i03:= C.uiHistoStep_C TO 1 BY -1 DO
-    nHistoryStep_AR03[i03] := nHistoryStep_AR01[i03-1];
+    nHistoryStep_AR03[i03] := nHistoryStep_AR03[i03-1];
   END_FOR
   nHistoryStep_AR03[0] := nStep;
 END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Clear01Hysto" Id="{9acbd967-892c-41a5-b04e-838265848290}">
+      <Declaration><![CDATA[METHOD Clear01Hysto : BOOL
+VAR_INPUT
+	nStep : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i01:= 1 TO C.uiHistoStep_C DO
+    nHistoryStep_AR01[i01] := 0;
+END_FOR
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Clear02Hysto" Id="{1b67b458-36d5-41e3-b088-0acd6acdbfa2}">
+      <Declaration><![CDATA[METHOD Clear02Hysto : BOOL
+VAR_INPUT
+	nStep : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i02:= 1 TO C.uiHistoStep_C DO
+    nHistoryStep_AR02[i02] := 0;
+END_FOR
+]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Clear03Hysto" Id="{8673bcc6-e4dd-4fbc-b962-3635c5c888a6}">
+      <Declaration><![CDATA[METHOD Clear03Hysto : BOOL
+VAR_INPUT
+	nStep : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[FOR i03:= 1 TO C.uiHistoStep_C DO
+    nHistoryStep_AR03[i03] := 0;
+END_FOR
+]]></ST>
       </Implementation>
     </Method>
     <Property Name="MRIrrLine" Id="{c97f7cff-b04b-483c-aaff-2ad8ce967b9f}">

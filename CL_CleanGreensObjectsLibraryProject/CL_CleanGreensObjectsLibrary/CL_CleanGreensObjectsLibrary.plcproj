@@ -17,7 +17,7 @@
     <Implicit_Jitter_Distribution>{b4f89882-2da8-48f5-814e-17f4fd1af151}</Implicit_Jitter_Distribution>
     <LibraryReferences>{d2c2038c-fc09-419c-93c1-bb577a633200}</LibraryReferences>
     <Company>CleanGreens SA</Company>
-    <Released>true</Released>
+    <Released>false</Released>
     <Title>CL_CleanGreensObjectsLibrary</Title>
     <ProjectVersion>2.2</ProjectVersion>
     <LibraryCategories>
