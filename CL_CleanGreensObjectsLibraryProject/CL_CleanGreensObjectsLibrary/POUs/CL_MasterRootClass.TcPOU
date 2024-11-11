@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <TcPlcObject Version="1.1.0.1" ProductVersion="3.1.4024.13">
-  <POU Name="CL_MasterRootClass" Id="{f256ed98-ffc6-46a6-9a30-eba677a2a6f4}" SpecialFunc="None">
+  <POU Name="CL_MasterRootClass" Id="{92d25d2e-4038-4367-a45e-53b08684dc3c}" SpecialFunc="None">
     <Declaration><![CDATA[FUNCTION_BLOCK CL_MasterRootClass
 VAR
   //_nThisIrrLine is either the GHSpan or the Irrigation line.  The irrigation line is some installation coincides with the GHSpan, in other installation is one of the 2 lines of the GHSpan
@@ -9,15 +9,15 @@ VAR
   
   _IrrLine                    : ST_LineReference;
   
-  i01                         : INT;
+  i01                         : INT := 0;
   nHistoryStep_AR01           : ARRAY[0..C.uiHistoStep_C] OF INT;
   nLastStep01                 : INT := -1;
   
-  i02                         : INT;
+  i02                         : INT := 0;
   nHistoryStep_AR02           : ARRAY[0..C.uiHistoStep_C] OF INT;
   nLastStep02                 : INT := -1;
   
-  i03                         : INT;
+  i03                         : INT := 0;
   nHistoryStep_AR03           : ARRAY[0..C.uiHistoStep_C] OF INT;
   nLastStep03                 : INT := -1;
 END_VAR
@@ -25,8 +25,25 @@ END_VAR
     <Implementation>
       <ST><![CDATA[]]></ST>
     </Implementation>
-    <Method Name="Case01Hysto" Id="{36943467-910f-48a2-abc4-66e7555a48f8}">
+    <Method Name="Case01Hysto" Id="{c21a2dba-35ab-4cc2-91c9-ebd77c3d948b}">
       <Declaration><![CDATA[METHOD Case01Hysto : BOOL
+VAR_INPUT
+	nStep : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF nStep <> nLastStep01 THEN
+  nLastStep01 := nStep;
+  nHistoryStep_AR01[i01] := nStep;
+  i01 := i01 + 1;
+  IF i01 > C.uiHistoStep_C THEN
+    i01 := 0;
+  END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Case01HystoRev" Id="{05c1cd39-1341-4456-acbf-aaabc40f38ff}">
+      <Declaration><![CDATA[METHOD Case01HystoRev : BOOL
 VAR_INPUT
 	nStep : INT;
 END_VAR
@@ -41,8 +58,25 @@ END_VAR
 END_IF]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Case02Hysto" Id="{cace08ae-d093-4911-a476-ba59f8020058}">
+    <Method Name="Case02Hysto" Id="{a2444fb3-18dd-43f4-b541-ebf6036e4d70}">
       <Declaration><![CDATA[METHOD Case02Hysto : BOOL
+VAR_INPUT
+	nStep : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF nStep <> nLastStep02 THEN
+  nLastStep02 := nStep;
+  nHistoryStep_AR02[i02] := nStep;
+  i02 := i02 + 1;
+  IF i02 > C.uiHistoStep_C THEN
+    i02 := 0;
+  END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Case02HystoRev" Id="{4221a86b-9ab8-416c-9669-0164f1154473}">
+      <Declaration><![CDATA[METHOD Case02HystoRev : BOOL
 VAR_INPUT
 	nStep : INT;
 END_VAR
@@ -57,8 +91,25 @@ END_VAR
 END_IF]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Case03Hysto" Id="{77821689-f15f-4e51-9533-ac651e8d11f9}">
+    <Method Name="Case03Hysto" Id="{1ab83e67-a34d-442d-9abc-a21e249fb1a6}">
       <Declaration><![CDATA[METHOD Case03Hysto : BOOL
+VAR_INPUT
+	nStep : INT;
+END_VAR
+]]></Declaration>
+      <Implementation>
+        <ST><![CDATA[IF nStep <> nLastStep03 THEN
+  nLastStep03 := nStep;
+  nHistoryStep_AR03[i03] := nStep;
+  i03 := i03 + 1;
+  IF i03 > C.uiHistoStep_C THEN
+    i03 := 0;
+  END_IF
+END_IF]]></ST>
+      </Implementation>
+    </Method>
+    <Method Name="Case03HystoRev" Id="{eddf62dc-2e7c-4166-9738-717fe887a6ec}">
+      <Declaration><![CDATA[METHOD Case03HystoRev : BOOL
 VAR_INPUT
 	nStep : INT;
 END_VAR
@@ -73,7 +124,7 @@ END_VAR
 END_IF]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Clear01Hysto" Id="{9acbd967-892c-41a5-b04e-838265848290}">
+    <Method Name="Clear01Hysto" Id="{757feae8-ce88-4503-a180-25caa29299c8}">
       <Declaration><![CDATA[METHOD Clear01Hysto : BOOL
 VAR_INPUT
 	nStep : INT;
@@ -86,7 +137,7 @@ END_FOR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Clear02Hysto" Id="{1b67b458-36d5-41e3-b088-0acd6acdbfa2}">
+    <Method Name="Clear02Hysto" Id="{2ec5d523-bbc8-4d9a-ae4e-d82efd5bfa84}">
       <Declaration><![CDATA[METHOD Clear02Hysto : BOOL
 VAR_INPUT
 	nStep : INT;
@@ -99,7 +150,7 @@ END_FOR
 ]]></ST>
       </Implementation>
     </Method>
-    <Method Name="Clear03Hysto" Id="{8673bcc6-e4dd-4fbc-b962-3635c5c888a6}">
+    <Method Name="Clear03Hysto" Id="{23c5198b-2248-4d9d-a536-f429a2c3edd2}">
       <Declaration><![CDATA[METHOD Clear03Hysto : BOOL
 VAR_INPUT
 	nStep : INT;
@@ -112,9 +163,9 @@ END_FOR
 ]]></ST>
       </Implementation>
     </Method>
-    <Property Name="MRIrrLine" Id="{c97f7cff-b04b-483c-aaff-2ad8ce967b9f}">
+    <Property Name="MRIrrLine" Id="{a62cf50e-0076-49bb-925b-c951f230b89c}">
       <Declaration><![CDATA[PROPERTY PUBLIC MRIrrLine : UINT]]></Declaration>
-      <Get Name="Get" Id="{c3de0dd5-3337-4c2c-b51c-4763a3629d03}">
+      <Get Name="Get" Id="{ac628814-c561-4cfd-9afd-12c62979e6ff}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -122,7 +173,7 @@ END_VAR
           <ST><![CDATA[MRIrrLine := _IrrLine.nThis;]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{46d94843-fff3-40a9-8db6-23b78d535091}">
+      <Set Name="Set" Id="{aa2ee292-0fcc-4562-a706-6d95519b76ba}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -131,9 +182,9 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="MRIrrLineFixedID" Id="{e956723f-1708-4a5c-935c-c43405c0c4e4}">
+    <Property Name="MRIrrLineFixedID" Id="{f073a66a-e12a-4769-83ce-c9de4fb06daa}">
       <Declaration><![CDATA[PROPERTY PUBLIC MRIrrLineFixedID : UINT]]></Declaration>
-      <Get Name="Get" Id="{eaa625b0-d445-4c05-956f-0c0fb0d17e85}">
+      <Get Name="Get" Id="{f78e31cb-def3-4767-a6a4-f388e148c0b6}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -141,7 +192,7 @@ END_VAR
           <ST><![CDATA[MRIrrLineFixedID := _IrrLine.nFixedID;]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{75daab21-c095-44f0-a6ed-68da338664c8}">
+      <Set Name="Set" Id="{2ccb50ab-cf67-449c-80e5-588f1b5ac48f}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -150,9 +201,9 @@ END_VAR
         </Implementation>
       </Set>
     </Property>
-    <Property Name="MRLineRef" Id="{28e48d99-3181-437b-965f-9ac918fd7fc8}">
+    <Property Name="MRLineRef" Id="{bac79d96-2606-4306-b34f-d5a6c1117aaa}">
       <Declaration><![CDATA[PROPERTY PUBLIC MRLineRef : ST_LineReference]]></Declaration>
-      <Get Name="Get" Id="{2d6263b9-bc8e-4c13-91e9-9576eb25c86e}">
+      <Get Name="Get" Id="{8bcc770a-96f5-40e1-9a72-5d56750996a7}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
@@ -160,7 +211,7 @@ END_VAR
           <ST><![CDATA[MRLineRef := _IrrLine;]]></ST>
         </Implementation>
       </Get>
-      <Set Name="Set" Id="{2ab984c2-3c58-4bcb-b08d-5b94c2b84cf7}">
+      <Set Name="Set" Id="{e96f5dba-3745-495f-b046-686eb7fc2f4f}">
         <Declaration><![CDATA[VAR
 END_VAR
 ]]></Declaration>
